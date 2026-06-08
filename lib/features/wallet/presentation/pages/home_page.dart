@@ -4,6 +4,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../main.dart';
 import 'notification_page.dart';
+import 'top_up_page.dart';
 import '../../data/repositories/wallet_repository.dart';
 
 class HomePage extends StatefulWidget {
@@ -49,41 +50,16 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _topUp() async {
-    try {
-      final responseModel = await _repository.topUp(500000);
-      
-      if (responseModel != null) {
-        setState(() {
-          _balance = responseModel.balance;
-          _unreadNotifications++;
-        });
-        if (mounted) {
-          // SnackBar dihapus sesuai permintaan
-        }
-
-        // Tampilkan Notifikasi
-        const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
-          'emoney_topup_channel',
-          'Notifikasi Top Up',
-          channelDescription: 'Notifikasi saat saldo berhasil ditambahkan',
-          importance: Importance.max,
-          priority: Priority.high,
-          ticker: 'ticker',
-        );
-        const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
-        
-        await NotificationService.addNotification('Top Up Berhasil! 💸', 'Saldo E-Money Mamah Saya bertambah Rp 500.000');
-
-        await flutterLocalNotificationsPlugin.show(
-          0,
-          'Top Up Berhasil! 💸',
-          'Saldo E-Money Mamah Saya bertambah Rp 500.000',
-          platformChannelSpecifics,
-        );
-      }
-    } catch (e) {
-      debugPrint('Top Up Gagal: $e');
+  Future<void> _navigateToTopUp() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const TopUpPage()),
+    );
+    if (result == true) {
+      _fetchBalance(); // Refresh saldo otomatis dari server
+      setState(() {
+        _unreadNotifications++; // Tambah notifikasi baru
+      });
     }
   }
 
@@ -130,7 +106,7 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     Expanded(
                       child: ElevatedButton.icon(
-                        onPressed: _topUp,
+                        onPressed: _navigateToTopUp,
                         icon: const Icon(Icons.add, color: Colors.white),
                         label: const Text('Top Up Saldo', style: TextStyle(color: Colors.white)),
                         style: ElevatedButton.styleFrom(
