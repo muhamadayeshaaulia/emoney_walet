@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:app_links/app_links.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import '../services/notification_service.dart';
-import '../main.dart';
+import '../../../../core/services/notification_service.dart';
+import '../../../../main.dart';
 import 'notification_page.dart';
-import '../features/wallet/data/repositories/wallet_repository.dart';
+import '../../data/repositories/wallet_repository.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -34,10 +35,10 @@ class _HomePageState extends State<HomePage> {
   Future<void> _fetchBalance() async {
     setState(() => _isLoading = true);
     try {
-      final balance = await _repository.fetchBalance();
-      if (balance != null) {
+      final responseModel = await _repository.fetchBalance();
+      if (responseModel != null) {
         setState(() {
-          _balance = balance;
+          _balance = responseModel.balance;
         });
       }
     } catch (e) {
@@ -49,11 +50,11 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _topUp() async {
     try {
-      final newBalance = await _repository.topUp(500000);
+      final responseModel = await _repository.topUp(500000);
       
-      if (newBalance != null) {
+      if (responseModel != null) {
         setState(() {
-          _balance = newBalance;
+          _balance = responseModel.balance;
         });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

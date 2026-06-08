@@ -2,15 +2,19 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:app_links/app_links.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:http/http.dart' as http;
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'services/notification_service.dart';
-import 'firebase_options.dart';
-import 'pages/splash_page.dart';
-import 'pages/main_navigation.dart';
+import 'package:dio/dio.dart';
+import 'package:http/http.dart' as http;
+import 'core/services/notification_service.dart';
+import 'core/constants/api_constants.dart';
+import 'features/auth/presentation/pages/splash_page.dart';
+import 'features/dashboard/presentation/pages/main_navigation.dart';
 import 'features/wallet/data/repositories/wallet_repository.dart';
+import 'core/routes/app_router.dart';
+import 'firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
@@ -97,7 +101,8 @@ class _EMoneyAppState extends State<EMoneyApp> {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent),
         useMaterial3: true,
       ),
-      home: const SplashPage(),
+      initialRoute: AppRouter.splash,
+      routes: AppRouter.routes,
     );
   }
 }
@@ -174,9 +179,9 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
 
     try {
       final repository = WalletRepository();
-      final isSuccess = await repository.payTransaction(widget.invoiceId, widget.token);
+      final responseModel = await repository.payTransaction(widget.invoiceId, widget.token);
 
-      if (isSuccess) {
+      if (responseModel != null) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Pembayaran Berhasil! Mengembalikan ke E-Commerce...')),

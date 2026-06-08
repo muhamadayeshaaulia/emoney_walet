@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
-import '../services/biometric_service.dart';
+import '../../../../core/services/auth_service.dart';
+import '../../../../core/services/biometric_service.dart';
 import 'login_page.dart';
-import 'main_navigation.dart';
+import '../../../dashboard/presentation/pages/main_navigation.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
