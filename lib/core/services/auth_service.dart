@@ -2,10 +2,11 @@ import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/foundation.dart';
+import '../network/dio_client.dart';
+import '../constants/api_constants.dart';
 
 class AuthService {
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
-  static final Dio _dio = Dio(BaseOptions(baseUrl: 'http://192.168.100.218:8080')); // Ganti sesuai IP Backend jika perlu
 
   static Future<bool> login(String email, String password) async {
     try {
@@ -20,8 +21,8 @@ class AuthService {
       if (firebaseToken == null) return false;
 
       // 3. Tukar dengan JWT Golang
-      final response = await _dio.post(
-        '/v1/auth/verify-token',
+      final response = await DioClient.instance.post(
+        ApiConstants.verifyToken,
         data: {'firebase_token': firebaseToken},
       );
 

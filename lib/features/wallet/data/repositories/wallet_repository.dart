@@ -3,18 +3,17 @@ import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/services/auth_service.dart';
+import '../../../../core/network/dio_client.dart';
 import '../models/wallet_response_model.dart';
 
 class WalletRepository {
-  final Dio _dio = Dio(BaseOptions(baseUrl: ApiConstants.baseUrl));
-
   // Fungsi Get Balance
   Future<BalanceResponseModel?> fetchBalance() async {
     String? token = await AuthService.getToken();
     if (token == null) return null;
 
     try {
-      final response = await _dio.get(
+      final response = await DioClient.instance.get(
         ApiConstants.wallet,
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
@@ -33,7 +32,7 @@ class WalletRepository {
     if (token == null) return null;
 
     try {
-      final response = await _dio.post(
+      final response = await DioClient.instance.post(
         ApiConstants.topUp,
         data: {'amount': amount},
         options: Options(headers: {'Authorization': 'Bearer $token'}),

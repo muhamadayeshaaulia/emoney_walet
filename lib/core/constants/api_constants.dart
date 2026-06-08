@@ -7,4 +7,7 @@ class ApiConstants {
   static const String wallet = '/wallet';
   static const String topUp = '/wallet/topup';
   static const String pay = '/wallet/pay';
+
+  // Auth endpoints
+  static const String verifyToken = '/auth/verify-token';
 }
