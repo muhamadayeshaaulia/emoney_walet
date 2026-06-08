@@ -4,6 +4,7 @@ import '../../../../core/services/auth_service.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/network/dio_client.dart';
 import '../../../../core/utils/currency_formatter.dart';
+import 'receipt_page.dart';
 
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
@@ -88,6 +89,21 @@ class _HistoryPageState extends State<HistoryPage> {
                           ),
                         ),
                         isThreeLine: true,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ReceiptPage(
+                                data: {
+                                  'type': isTopUp ? 'topup' : 'pay',
+                                  'amount': amount,
+                                  'invoice_id': invoiceId,
+                                  'date': tx['created_at'] ?? '',
+                                },
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     );
                   },
