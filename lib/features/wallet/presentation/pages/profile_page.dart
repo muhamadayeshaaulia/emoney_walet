@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import '../../../../main.dart';
 import '../../../../core/services/auth_service.dart';
 import '../../../auth/presentation/pages/login_page.dart';
 
@@ -44,6 +46,24 @@ class _ProfilePageState extends State<ProfilePage> {
     setState(() {
       _isFingerprintEnabled = value;
     });
+
+    if (value) {
+      const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+        'emoney_channel',
+        'Notifikasi E-Money',
+        channelDescription: 'Notifikasi sistem E-Money',
+        importance: Importance.max,
+        priority: Priority.high,
+      );
+      const NotificationDetails notificationDetails = NotificationDetails(android: androidDetails);
+      
+      await flutterLocalNotificationsPlugin.show(
+        1,
+        'Sidik Jari Aktif! 🥳',
+        'Yeyyy! Sekarang Anda bisa login dengan lebih mudah menggunakan sidik jari Anda',
+        notificationDetails,
+      );
+    }
   }
 
   void _logout(BuildContext context) async {
