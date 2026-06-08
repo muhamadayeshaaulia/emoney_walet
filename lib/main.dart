@@ -10,7 +10,7 @@ import 'services/notification_service.dart';
 import 'firebase_options.dart';
 import 'pages/splash_page.dart';
 import 'pages/main_navigation.dart';
-
+import 'features/wallet/data/repositories/wallet_repository.dart';
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
@@ -173,20 +173,10 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
     setState(() => _isLoading = true);
 
     try {
-      // Gunakan IP yang sama dengan ApiConstants.baseUrl di UTS App
-      final url = Uri.parse('http://192.168.100.218:8080/v1/wallet/pay');
-      final response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${widget.token}',
-        },
-        body: jsonEncode({
-          'invoice_id': widget.invoiceId,
-        }),
-      );
+      final repository = WalletRepository();
+      final isSuccess = await repository.payTransaction(widget.invoiceId, widget.token);
 
-      if (response.statusCode == 200) {
+      if (isSuccess) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Pembayaran Berhasil! Mengembalikan ke E-Commerce...')),
@@ -211,13 +201,13 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
       } else {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal: ${response.body}')),
+          const SnackBar(content: Text('Gagal melakukan pembayaran. Coba lagi.')),
         );
       }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error jaringan: $e')),
+        SnackBar(content: Text(e.toString())),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);

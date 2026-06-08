@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import '../services/auth_service.dart';
 import '../services/notification_service.dart';
 import '../main.dart';
 import 'notification_page.dart';
+import '../features/wallet/data/repositories/wallet_repository.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -16,7 +15,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   double _balance = 0.0;
   bool _isLoading = true;
-  final Dio _dio = Dio(BaseOptions(baseUrl: 'http://192.168.100.218:8080')); 
+  final WalletRepository _repository = WalletRepository();
 
   @override
   void initState() {
@@ -34,17 +33,11 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _fetchBalance() async {
     setState(() => _isLoading = true);
-    String? token = await AuthService.getToken();
-    if (token == null) return;
-
     try {
-      final response = await _dio.get(
-        '/v1/wallet',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
-      );
-      if (response.statusCode == 200) {
+      final balance = await _repository.fetchBalance();
+      if (balance != null) {
         setState(() {
-          _balance = (response.data['balance'] as num).toDouble();
+          _balance = balance;
         });
       }
     } catch (e) {
@@ -55,19 +48,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _topUp() async {
-    String? token = await AuthService.getToken();
-    if (token == null) return;
-
     try {
-      final response = await _dio.post(
-        '/v1/wallet/topup',
-        data: {'amount': 500000}, // Sekali Top Up Rp 500.000
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
-      );
+      final newBalance = await _repository.topUp(500000);
       
-      if (response.statusCode == 200) {
+      if (newBalance != null) {
         setState(() {
-          _balance = (response.data['balance'] as num).toDouble();
+          _balance = newBalance;
         });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -85,7 +71,7 @@ class _HomePageState extends State<HomePage> {
           ticker: 'ticker',
         );
         const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
-        // Simpan ke SharedPreferences
+        
         await NotificationService.addNotification('Top Up Berhasil! 💸', 'Saldo E-Money Mamah Saya bertambah Rp 500.000');
 
         await flutterLocalNotificationsPlugin.show(
