@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../services/auth_service.dart';
+import '../main.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -17,7 +19,15 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    _requestNotificationPermission();
     _fetchBalance();
+  }
+
+  void _requestNotificationPermission() async {
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestNotificationsPermission();
   }
 
   Future<void> _fetchBalance() async {
@@ -62,6 +72,23 @@ class _HomePageState extends State<HomePage> {
             const SnackBar(content: Text('Top Up Rp 500.000 Berhasil!')),
           );
         }
+
+        // Tampilkan Notifikasi
+        const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
+          'emoney_topup_channel',
+          'Notifikasi Top Up',
+          channelDescription: 'Notifikasi saat saldo berhasil ditambahkan',
+          importance: Importance.max,
+          priority: Priority.high,
+          ticker: 'ticker',
+        );
+        const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
+        await flutterLocalNotificationsPlugin.show(
+          0,
+          'Top Up Berhasil! 💸',
+          'Saldo E-Money Mamah Saya bertambah Rp 500.000',
+          platformChannelSpecifics,
+        );
       }
     } catch (e) {
       debugPrint('Top Up Gagal: $e');
