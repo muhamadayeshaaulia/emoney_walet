@@ -16,6 +16,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   double _balance = 0.0;
   bool _isLoading = true;
+  int _unreadNotifications = 0;
   final WalletRepository _repository = WalletRepository();
 
   @override
@@ -55,6 +56,7 @@ class _HomePageState extends State<HomePage> {
       if (responseModel != null) {
         setState(() {
           _balance = responseModel.balance;
+          _unreadNotifications++;
         });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -95,8 +97,15 @@ class _HomePageState extends State<HomePage> {
         title: const Text('E-Money Mamah Saya', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications),
+            icon: Badge(
+              isLabelVisible: _unreadNotifications > 0,
+              label: Text('$_unreadNotifications'),
+              child: const Icon(Icons.notifications),
+            ),
             onPressed: () {
+              setState(() {
+                _unreadNotifications = 0;
+              });
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const NotificationPage()),
