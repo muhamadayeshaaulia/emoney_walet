@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import '../../../../core/services/auth_service.dart';
 import '../../../../core/constants/api_constants.dart';
+import '../../../../core/network/dio_client.dart';
 
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
@@ -13,7 +14,6 @@ class HistoryPage extends StatefulWidget {
 class _HistoryPageState extends State<HistoryPage> {
   bool _isLoading = true;
   List<dynamic> _transactions = [];
-  final Dio _dio = Dio(BaseOptions(baseUrl: 'http://192.168.100.218:8080'));
 
   @override
   void initState() {
@@ -27,8 +27,8 @@ class _HistoryPageState extends State<HistoryPage> {
     if (token == null) return;
 
     try {
-      final response = await _dio.get(
-        '/v1/transactions',
+      final response = await DioClient.instance.get(
+        '/transactions',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
       if (response.statusCode == 200) {

@@ -105,7 +105,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: _isLoading 
+      body: _isLoading
         ? const Center(child: CircularProgressIndicator())
         : Padding(
             padding: const EdgeInsets.all(24.0),
