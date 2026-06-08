@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/foundation.dart';
 import '../network/dio_client.dart';
 import '../constants/api_constants.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
@@ -35,6 +36,43 @@ class AuthService {
       return false;
     } catch (e) {
       debugPrint('Login Error: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> loginWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) return false; // Dibatalkan oleh user
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // 1. Login Firebase dengan Google Credential
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+
+      // 2. Ambil Firebase Token
+      String? firebaseToken = await userCredential.user?.getIdToken();
+      if (firebaseToken == null) return false;
+
+      // 3. Tukar dengan JWT Golang
+      final response = await DioClient.instance.post(
+        ApiConstants.verifyToken,
+        data: {'firebase_token': firebaseToken},
+      );
+
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        // 4. Simpan JWT Token di Secure Storage
+        String jwtToken = response.data['data']['access_token'];
+        await _storage.write(key: 'auth_token', value: jwtToken);
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Google Login Error: $e');
       return false;
     }
   }
