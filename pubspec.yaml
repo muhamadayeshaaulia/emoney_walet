@@ -60,9 +60,11 @@ dev_dependencies:
   flutter_launcher_icons: ^0.13.1
 
 flutter_launcher_icons:
-  android: "launcher_icon"
+  android: true
   ios: true
   image_path: "assets/logo/logo.png"
+  adaptive_icon_background: "#FFFFFF" # Background putih agar rapi
+  adaptive_icon_foreground: "assets/logo/logo_padded.png" # Logo dengan padding
   min_sdk_android: 21
 
 # For information on the generic Dart part of this file, see the
