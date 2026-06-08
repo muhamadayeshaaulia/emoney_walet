@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:app_links/app_links.dart';
+import 'package:http/http.dart' as http;
 
 void main() {
   runApp(const EMoneyApp());
@@ -69,8 +71,9 @@ class _DashboardPageState extends State<DashboardPage> {
     if (uri.scheme == 'emoneyapp' && uri.host == 'pay') {
       final invoiceId = uri.queryParameters['invoice_id'];
       final amountStr = uri.queryParameters['amount'];
+      final token = uri.queryParameters['token'];
       
-      if (invoiceId != null && amountStr != null) {
+      if (invoiceId != null && amountStr != null && token != null) {
         final amount = double.tryParse(amountStr) ?? 0.0;
         
         // Pindah ke halaman konfirmasi pembayaran
@@ -78,6 +81,7 @@ class _DashboardPageState extends State<DashboardPage> {
           builder: (context) => PaymentConfirmationPage(
             invoiceId: invoiceId,
             amount: amount,
+            token: token,
           ),
         ));
       }
@@ -121,15 +125,113 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 }
 
-class PaymentConfirmationPage extends StatelessWidget {
+class PaymentConfirmationPage extends StatefulWidget {
   final String invoiceId;
   final double amount;
+  final String token;
 
   const PaymentConfirmationPage({
     super.key,
     required this.invoiceId,
     required this.amount,
+    required this.token,
   });
+
+  @override
+  State<PaymentConfirmationPage> createState() => _PaymentConfirmationPageState();
+}
+
+class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
+  bool _isLoading = false;
+
+  void _showPinDialog() {
+    final TextEditingController pinController = TextEditingController();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Masukkan PIN 2FA'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Masukkan PIN 6 angka Anda untuk menyetujui pembayaran ini. (Gunakan 123456)'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: pinController,
+              keyboardType: TextInputType.number,
+              obscureText: true,
+              maxLength: 6,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: '******',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (pinController.text == '123456') {
+                Navigator.pop(context); // Tutup dialog
+                _processPayment();
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('PIN Salah! Silakan coba lagi.')),
+                );
+              }
+            },
+            child: const Text('Verifikasi'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _processPayment() async {
+    setState(() => _isLoading = true);
+
+    try {
+      // Gunakan IP yang sama dengan ApiConstants.baseUrl di UTS App
+      final url = Uri.parse('http://192.168.100.218:8080/v1/wallet/pay');
+      
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${widget.token}',
+        },
+        body: jsonEncode({
+          'invoice_id': widget.invoiceId,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Pembayaran Berhasil!')),
+        );
+        // Kembali ke dashboard E-Money setelah sukses
+        Navigator.pop(context);
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal: ${response.body}')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error jaringan: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -161,7 +263,7 @@ class PaymentConfirmationPage extends StatelessWidget {
                     const Text('Total Tagihan', style: TextStyle(color: Colors.grey)),
                     const SizedBox(height: 8),
                     Text(
-                      'Rp ${amount.toStringAsFixed(0)}',
+                      'Rp ${widget.amount.toStringAsFixed(0)}',
                       style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.blueAccent),
                     ),
                     const Divider(height: 30),
@@ -169,7 +271,7 @@ class PaymentConfirmationPage extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text('Invoice ID:'),
-                        Text(invoiceId, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        Text(widget.invoiceId, style: const TextStyle(fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ],
@@ -177,23 +279,20 @@ class PaymentConfirmationPage extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            ElevatedButton(
-              onPressed: () {
-                // Nanti kita akan arahkan ke input PIN dan pemotongan saldo (API)
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Lanjut ke verifikasi PIN... (Belum diimplementasi)')),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              child: const Text(
-                'LANJUTKAN',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-              ),
-            ),
+            _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : ElevatedButton(
+                    onPressed: _showPinDialog,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text(
+                      'LANJUTKAN (VERIFIKASI PIN)',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                  ),
           ],
         ),
       ),
