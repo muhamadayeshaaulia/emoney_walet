@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'services/notification_service.dart';
 import 'firebase_options.dart';
 import 'pages/splash_page.dart';
 import 'pages/main_navigation.dart';
@@ -192,6 +193,12 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
           const SnackBar(content: Text('Pembayaran Berhasil! Mengembalikan ke E-Commerce...')),
         );
         
+        // Simpan notifikasi ke SharedPreferences
+        await NotificationService.addNotification(
+          'Pembayaran Sukses ✅',
+          'Pembayaran tagihan ${widget.invoiceId} sebesar Rp ${widget.amount} berhasil.',
+        );
+
         // Kembali ke dashboard E-Money
         Navigator.pop(context);
         
