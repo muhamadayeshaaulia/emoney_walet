@@ -59,9 +59,7 @@ class _HomePageState extends State<HomePage> {
           _unreadNotifications++;
         });
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Top Up Rp 500.000 Berhasil!')),
-          );
+          // SnackBar dihapus sesuai permintaan
         }
 
         // Tampilkan Notifikasi
