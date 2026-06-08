@@ -1,8 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../data/repositories/wallet_repository.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../main.dart'; // for flutterLocalNotificationsPlugin
+
+class CurrencyInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (newValue.text.isEmpty) {
+      return newValue;
+    }
+    // Hanya ambil angka
+    String cleanText = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cleanText.isEmpty) return const TextEditingValue(text: '');
+    
+    // Format ke ribuan dengan titik
+    int value = int.parse(cleanText);
+    String newText = formatNumber(value);
+    
+    return newValue.copyWith(
+      text: newText,
+      selection: TextSelection.collapsed(offset: newText.length),
+    );
+  }
+
+  // Helper function untuk format angka (bisa dipakai di tempat lain)
+  static String formatNumber(int value) {
+    String str = value.toString();
+    String result = '';
+    int count = 0;
+    for (int i = str.length - 1; i >= 0; i--) {
+      result = str[i] + result;
+      count++;
+      if (count % 3 == 0 && i != 0) {
+        result = '.$result';
+      }
+    }
+    return result;
+  }
+}
 
 class TopUpPage extends StatefulWidget {
   const TopUpPage({super.key});
@@ -20,11 +60,12 @@ class _TopUpPageState extends State<TopUpPage> {
 
   void _selectPreset(int amount) {
     setState(() {
-      _amountController.text = amount.toString();
+      _amountController.text = CurrencyInputFormatter.formatNumber(amount);
     });
   }
 
   Future<void> _processTopUp() async {
+    // Ambil nilai asli (tanpa titik)
     final amountText = _amountController.text.replaceAll(RegExp(r'[^0-9]'), '');
     if (amountText.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -57,12 +98,17 @@ class _TopUpPageState extends State<TopUpPage> {
         );
         const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
         
-        await NotificationService.addNotification('Top Up Berhasil! 💸', 'Saldo E-Money Mamah Saya bertambah Rp ${amount.toStringAsFixed(0)}');
+        String formattedAmount = CurrencyInputFormatter.formatNumber(amount.toInt());
+        
+        await NotificationService.addNotification(
+          'Top Up Berhasil! 💸', 
+          'Saldo E-Money Mamah Saya bertambah Rp $formattedAmount'
+        );
 
         await flutterLocalNotificationsPlugin.show(
           0,
           'Top Up Berhasil! 💸',
-          'Saldo E-Money Mamah Saya bertambah Rp ${amount.toStringAsFixed(0)}',
+          'Saldo E-Money Mamah Saya bertambah Rp $formattedAmount',
           platformChannelSpecifics,
         );
 
@@ -89,6 +135,9 @@ class _TopUpPageState extends State<TopUpPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Hapus titik untuk mengecek apakah sesuai dengan preset
+    String cleanText = _amountController.text.replaceAll(RegExp(r'[^0-9]'), '');
+
     return Scaffold(
       appBar: AppBar(title: const Text('Top Up Saldo')),
       body: Padding(
@@ -103,8 +152,8 @@ class _TopUpPageState extends State<TopUpPage> {
               runSpacing: 12,
               children: _presetAmounts.map((amount) {
                 return ChoiceChip(
-                  label: Text('Rp ${amount.toStringAsFixed(0)}'),
-                  selected: _amountController.text == amount.toString(),
+                  label: Text('Rp ${CurrencyInputFormatter.formatNumber(amount)}'),
+                  selected: cleanText == amount.toString(),
                   onSelected: (selected) {
                     if (selected) _selectPreset(amount);
                   },
@@ -117,6 +166,9 @@ class _TopUpPageState extends State<TopUpPage> {
             TextField(
               controller: _amountController,
               keyboardType: TextInputType.number,
+              inputFormatters: [
+                CurrencyInputFormatter(), // <-- Formatter format Rupiah
+              ],
               decoration: const InputDecoration(
                 prefixText: 'Rp ',
                 border: OutlineInputBorder(),

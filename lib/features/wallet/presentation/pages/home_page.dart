@@ -6,6 +6,7 @@ import '../../../../main.dart';
 import 'notification_page.dart';
 import 'top_up_page.dart';
 import '../../data/repositories/wallet_repository.dart';
+import '../../../../core/utils/currency_formatter.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -98,7 +99,7 @@ class _HomePageState extends State<HomePage> {
                 const Text('Saldo Anda', style: TextStyle(fontSize: 18, color: Colors.grey)),
                 const SizedBox(height: 8),
                 Text(
-                  'Rp ${_balance.toStringAsFixed(0)}',
+                  'Rp ${CurrencyFormatter.format(_balance)}',
                   style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.blueAccent),
                 ),
                 const SizedBox(height: 40),

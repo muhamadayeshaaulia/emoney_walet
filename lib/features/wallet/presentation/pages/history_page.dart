@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import '../../../../core/services/auth_service.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/network/dio_client.dart';
+import '../../../../core/utils/currency_formatter.dart';
 
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
@@ -79,7 +80,7 @@ class _HistoryPageState extends State<HistoryPage> {
                         title: Text(isTopUp ? 'Top Up Saldo' : 'Pembayaran E-Commerce'),
                         subtitle: Text('Invoice: $invoiceId\nStatus: $status'),
                         trailing: Text(
-                          '${isTopUp ? '+' : '-'} Rp ${amount.toStringAsFixed(0)}',
+                          '${isTopUp ? '+' : '-'} Rp ${CurrencyFormatter.format(amount)}',
                           style: TextStyle(
                             color: isTopUp ? Colors.green : Colors.red,
                             fontWeight: FontWeight.bold,
