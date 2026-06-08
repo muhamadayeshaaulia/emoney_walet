@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/services/auth_service.dart';
 import '../../../../core/services/biometric_service.dart';
 import '../../../dashboard/presentation/pages/main_navigation.dart';
@@ -35,6 +36,17 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _loginWithFingerprint() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool isEnabled = prefs.getBool('is_fingerprint_enabled') ?? true;
+    if (!isEnabled) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Fitur Sidik Jari dimatikan. Silakan aktifkan di halaman Profil.')),
+        );
+      }
+      return;
+    }
+
     String? email = await AuthService.getSavedEmail();
     String? password = await AuthService.getSavedPassword();
 

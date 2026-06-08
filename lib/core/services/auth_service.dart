@@ -30,7 +30,9 @@ class AuthService {
       if (response.statusCode == 200 && response.data['success'] == true) {
         // 4. Simpan JWT Token di Secure Storage
         String jwtToken = response.data['data']['access_token'];
+        String userName = response.data['data']['user']['name'] ?? 'Pengguna E-Money';
         await _storage.write(key: 'auth_token', value: jwtToken);
+        await _storage.write(key: 'user_name', value: userName);
         
         // Simpan email & password untuk keperluan Fingerprint Login nantinya
         await _storage.write(key: 'saved_email', value: email);
@@ -71,7 +73,9 @@ class AuthService {
       if (response.statusCode == 200 && response.data['success'] == true) {
         // 4. Simpan JWT Token di Secure Storage
         String jwtToken = response.data['data']['access_token'];
+        String userName = response.data['data']['user']['name'] ?? 'Pengguna E-Money';
         await _storage.write(key: 'auth_token', value: jwtToken);
+        await _storage.write(key: 'user_name', value: userName);
         return true;
       }
       return false;
@@ -83,6 +87,10 @@ class AuthService {
 
   static Future<String?> getToken() async {
     return await _storage.read(key: 'auth_token');
+  }
+
+  static Future<String?> getUserName() async {
+    return await _storage.read(key: 'user_name');
   }
 
   static Future<String?> getSavedEmail() async {
