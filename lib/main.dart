@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:app_links/app_links.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 
 void main() {
@@ -213,10 +214,19 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
       if (response.statusCode == 200) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Pembayaran Berhasil!')),
+          const SnackBar(content: Text('Pembayaran Berhasil! Mengembalikan ke E-Commerce...')),
         );
-        // Kembali ke dashboard E-Money setelah sukses
+        
+        // Kembali ke dashboard E-Money
         Navigator.pop(context);
+        
+        // Memanggil aplikasi E-Commerce
+        final returnUrl = Uri.parse('ecommerceapp://success');
+        try {
+          await launchUrl(returnUrl, mode: LaunchMode.externalApplication);
+        } catch (e) {
+          debugPrint('Gagal membuka E-Commerce: $e');
+        }
       } else {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
