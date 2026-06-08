@@ -31,6 +31,10 @@ class AuthService {
         // 4. Simpan JWT Token di Secure Storage
         String jwtToken = response.data['data']['access_token'];
         await _storage.write(key: 'auth_token', value: jwtToken);
+        
+        // Simpan email & password untuk keperluan Fingerprint Login nantinya
+        await _storage.write(key: 'saved_email', value: email);
+        await _storage.write(key: 'saved_password', value: password);
         return true;
       }
       return false;
@@ -81,8 +85,17 @@ class AuthService {
     return await _storage.read(key: 'auth_token');
   }
 
+  static Future<String?> getSavedEmail() async {
+    return await _storage.read(key: 'saved_email');
+  }
+
+  static Future<String?> getSavedPassword() async {
+    return await _storage.read(key: 'saved_password');
+  }
+
   static Future<void> logout() async {
     await FirebaseAuth.instance.signOut();
     await _storage.delete(key: 'auth_token');
+    // Note: saved_email dan saved_password TIDAK dihapus agar fingerprint tetap bisa dipakai
   }
 }

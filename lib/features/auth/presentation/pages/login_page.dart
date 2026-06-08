@@ -35,14 +35,29 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _loginWithFingerprint() async {
-    String? token = await AuthService.getToken();
-    if (token != null) {
+    String? email = await AuthService.getSavedEmail();
+    String? password = await AuthService.getSavedPassword();
+
+    if (email != null && password != null) {
       bool isBiometricAvailable = await BiometricService.isBiometricAvailable();
       if (isBiometricAvailable) {
         bool authenticated = await BiometricService.authenticate();
         if (authenticated) {
           if (mounted) {
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainNavigation()));
+            setState(() => _isLoading = true);
+          }
+          
+          bool success = await AuthService.login(email, password);
+          
+          if (mounted) {
+            setState(() => _isLoading = false);
+            if (success) {
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainNavigation()));
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Sesi fingerprint kedaluwarsa. Silakan login dengan password.')),
+              );
+            }
           }
         } else {
           if (mounted) {
