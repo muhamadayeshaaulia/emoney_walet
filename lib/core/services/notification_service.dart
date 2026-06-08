@@ -5,7 +5,7 @@ class NotificationService {
   static const String _key = 'user_notifications';
 
   // Menyimpan notifikasi baru
-  static Future<void> addNotification(String title, String body) async {
+  static Future<void> addNotification(String title, String body, {Map<String, dynamic>? extraData}) async {
     final prefs = await SharedPreferences.getInstance();
     List<String> notifications = prefs.getStringList(_key) ?? [];
     
@@ -15,6 +15,9 @@ class NotificationService {
       'body': body,
       'date': DateTime.now().toIso8601String(),
     };
+    if (extraData != null) {
+      newNotif['extraData'] = extraData;
+    }
 
     notifications.insert(0, jsonEncode(newNotif)); // Tambah di paling atas
     await prefs.setStringList(_key, notifications);

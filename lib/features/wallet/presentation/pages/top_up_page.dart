@@ -102,7 +102,13 @@ class _TopUpPageState extends State<TopUpPage> {
         
         await NotificationService.addNotification(
           'Top Up Berhasil! 💸', 
-          'Saldo E-Money Mamah Saya bertambah Rp $formattedAmount'
+          'Saldo E-Money Mamah Saya bertambah Rp $formattedAmount',
+          extraData: {
+            'type': 'topup',
+            'invoice_id': responseModel.invoiceId,
+            'amount': responseModel.amount,
+            'date': responseModel.date,
+          }
         );
 
         await flutterLocalNotificationsPlugin.show(
