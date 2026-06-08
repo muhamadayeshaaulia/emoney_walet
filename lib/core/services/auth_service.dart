@@ -104,6 +104,6 @@ class AuthService {
   static Future<void> logout() async {
     await FirebaseAuth.instance.signOut();
     await _storage.delete(key: 'auth_token');
-    // Note: saved_email dan saved_password TIDAK dihapus agar fingerprint tetap bisa dipakai
+    // saved_email dan saved_password TIDAK dihapus agar fingerprint tetap bisa dipakai
   }
 }

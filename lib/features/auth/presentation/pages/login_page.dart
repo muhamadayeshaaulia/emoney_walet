@@ -37,11 +37,11 @@ class _LoginPageState extends State<LoginPage> {
 
   void _loginWithFingerprint() async {
     final prefs = await SharedPreferences.getInstance();
-    bool isEnabled = prefs.getBool('is_fingerprint_enabled') ?? true;
+    bool isEnabled = prefs.getBool('is_fingerprint_enabled') ?? false; // Default OFF
     if (!isEnabled) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Fitur Sidik Jari dimatikan. Silakan aktifkan di halaman Profil.')),
+          const SnackBar(content: Text('Sidik jari belum terdaftar di akun Anda.')),
         );
       }
       return;
@@ -58,9 +58,7 @@ class _LoginPageState extends State<LoginPage> {
           if (mounted) {
             setState(() => _isLoading = true);
           }
-          
           bool success = await AuthService.login(email, password);
-          
           if (mounted) {
             setState(() => _isLoading = false);
             if (success) {
@@ -88,7 +86,7 @@ class _LoginPageState extends State<LoginPage> {
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Anda belum pernah login sebelumnya. Silakan login dengan email & password terlebih dahulu untuk mendaftarkan perangkat.')),
+          const SnackBar(content: Text('Anda belum pernah login sebelumnya. Silakan login googel atau email terlebih dahulu.')),
         );
       }
     }

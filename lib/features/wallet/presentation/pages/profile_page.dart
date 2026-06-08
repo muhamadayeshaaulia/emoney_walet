@@ -34,7 +34,7 @@ class _ProfilePageState extends State<ProfilePage> {
   void _loadFingerprintSetting() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _isFingerprintEnabled = prefs.getBool('is_fingerprint_enabled') ?? true;
+      _isFingerprintEnabled = prefs.getBool('is_fingerprint_enabled') ?? false;
     });
   }
 
