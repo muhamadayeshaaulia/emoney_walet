@@ -42,7 +42,11 @@ class _LoginPageState extends State<LoginPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.account_balance_wallet, size: 80, color: Colors.blueAccent),
+            Image.asset(
+              'assets/logo/logo.png',
+              height: 120,
+              errorBuilder: (context, error, stackTrace) => const Icon(Icons.account_balance_wallet, size: 80, color: Colors.blueAccent),
+            ),
             const SizedBox(height: 24),
             const Text('Selamat Datang di E-Money', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 32),

@@ -56,20 +56,31 @@ class _SplashPageState extends State<SplashPage> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       backgroundColor: Colors.blueAccent,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.account_balance_wallet, size: 100, color: Colors.white),
-            SizedBox(height: 20),
-            Text(
+            Container(
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white, // Agar logo transparan/PNG terlihat jelas di background biru
+              ),
+              padding: const EdgeInsets.all(16),
+              child: Image.asset(
+                'assets/logo/logo.png',
+                height: 120,
+                errorBuilder: (context, error, stackTrace) => const Icon(Icons.account_balance_wallet, size: 100, color: Colors.blueAccent),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
               'E-Money Mamah Saya',
               style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 40),
-            CircularProgressIndicator(color: Colors.white),
+            const SizedBox(height: 40),
+            const CircularProgressIndicator(color: Colors.white),
           ],
         ),
       ),
