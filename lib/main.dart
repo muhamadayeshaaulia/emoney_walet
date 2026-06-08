@@ -175,7 +175,6 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
     try {
       // Gunakan IP yang sama dengan ApiConstants.baseUrl di UTS App
       final url = Uri.parse('http://192.168.100.218:8080/v1/wallet/pay');
-      
       final response = await http.post(
         url,
         headers: {
