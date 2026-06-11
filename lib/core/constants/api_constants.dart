@@ -1,6 +1,5 @@
 class ApiConstants {
-  static const String baseUrl = 'http://172.20.10.4:8080/v1';
-
+  static const String baseUrl = 'http://192.168.100.123:8080/v1';
   // Wallet endpoints
   static const String wallet = '/wallet';
   static const String topUp = '/wallet/topup';

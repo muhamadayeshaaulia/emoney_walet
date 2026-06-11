@@ -122,7 +122,7 @@ class _ReceiptPageState extends State<ReceiptPage> {
                               ),
                               const SizedBox(height: 8),
                               const Text(
-                                'E-Wallet Mamah Saya',
+                                'E-Money Mamah Saya',
                                 style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
                               ),
                             ],
