@@ -15,7 +15,7 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  bool _isFingerprintEnabled = false;
+  bool? _isFingerprintEnabled;
   String _userName = 'Memuat...';
 
   @override
@@ -36,9 +36,11 @@ class _ProfilePageState extends State<ProfilePage> {
 
   void _loadFingerprintSetting() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _isFingerprintEnabled = prefs.getBool('is_fingerprint_enabled') ?? false;
-    });
+    if (mounted) {
+      setState(() {
+        _isFingerprintEnabled = prefs.getBool('is_fingerprint_enabled') ?? false;
+      });
+    }
   }
 
   void _toggleFingerprint(bool value) async {
@@ -118,14 +120,20 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Card(
                 elevation: 2,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: SwitchListTile(
-                  title: const Text('Login dengan Sidik Jari', style: TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: const Text('Masuk lebih cepat & aman tanpa password'),
-                  value: _isFingerprintEnabled,
-                  onChanged: _toggleFingerprint,
-                  secondary: const Icon(Icons.fingerprint, color: AppColors.primaryColor, size: 32),
-                  activeColor: AppColors.primaryColor,
-                ),
+                child: _isFingerprintEnabled == null
+                    ? const ListTile(
+                        leading: Icon(Icons.fingerprint, color: Colors.grey, size: 32),
+                        title: Text('Memuat pengaturan...', style: TextStyle(color: Colors.grey)),
+                        trailing: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+                      )
+                    : SwitchListTile(
+                        title: const Text('Login dengan Sidik Jari', style: TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: const Text('Masuk lebih cepat & aman tanpa password'),
+                        value: _isFingerprintEnabled!,
+                        onChanged: _toggleFingerprint,
+                        secondary: const Icon(Icons.fingerprint, color: AppColors.primaryColor, size: 32),
+                        activeColor: AppColors.primaryColor,
+                      ),
               ),
             ),
             const SizedBox(height: 30),

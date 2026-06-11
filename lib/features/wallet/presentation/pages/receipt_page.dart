@@ -129,7 +129,6 @@ class _ReceiptPageState extends State<ReceiptPage> {
                             ],
                           ),
                         ),
-                        
                         const SizedBox(height: 32),
                         const Icon(Icons.check_circle, color: Colors.green, size: 64),
                         const SizedBox(height: 16),
@@ -139,9 +138,7 @@ class _ReceiptPageState extends State<ReceiptPage> {
                         ),
                         const SizedBox(height: 8),
                         Text(displayDate, style: const TextStyle(color: Colors.grey, fontSize: 14)),
-                        
                         const SizedBox(height: 32),
-                        
                         // KONTEN TRANSAKSI
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -166,9 +163,7 @@ class _ReceiptPageState extends State<ReceiptPage> {
                             ],
                           ),
                         ),
-                        
                         const SizedBox(height: 40),
-                        
                         // FOOTER STRUK
                         const Text(
                           'Terima kasih telah menggunakan E-MS',
@@ -180,7 +175,6 @@ class _ReceiptPageState extends State<ReceiptPage> {
                   ),
                 ),
               ),
-              
               // TOMBOL AKSI (Tidak ikut ter-screenshot)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
