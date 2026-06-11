@@ -11,6 +11,7 @@ import 'features/auth/presentation/pages/splash_page.dart';
 import 'features/dashboard/presentation/pages/main_navigation.dart';
 import 'features/wallet/data/repositories/wallet_repository.dart';
 import 'core/routes/app_router.dart';
+import 'core/theme/app_colors.dart';
 import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -98,7 +99,11 @@ class _EMoneyAppState extends State<EMoneyApp> {
       debugShowCheckedModeBanner: false,
       title: 'E-Money Mamah Saya',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent),
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primaryColor),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: AppColors.primaryColor,
+          foregroundColor: Colors.white,
+        ),
         useMaterial3: true,
       ),
       initialRoute: AppRouter.splash,
@@ -224,8 +229,6 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Konfirmasi Pembayaran'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -250,7 +253,7 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
                     const SizedBox(height: 8),
                     Text(
                       'Rp ${widget.amount.toStringAsFixed(0)}',
-                      style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.blueAccent),
+                      style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.primaryColor),
                     ),
                     const Divider(height: 30),
                     Row(
@@ -270,7 +273,7 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
                 : ElevatedButton(
                     onPressed: _showPinDialog,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
+                      backgroundColor: AppColors.primaryColor,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),

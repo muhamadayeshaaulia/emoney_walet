@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:flutter/rendering.dart';
 import 'package:gal/gal.dart';
 import 'dart:io';
+import '../../../../core/theme/app_colors.dart';
 
 class ReceiptPage extends StatefulWidget {
   final Map<String, dynamic> data;
@@ -100,7 +101,7 @@ class _ReceiptPageState extends State<ReceiptPage> {
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(vertical: 24),
                           decoration: const BoxDecoration(
-                            color: Colors.blueAccent,
+                            color: AppColors.primaryColor,
                             borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                           ),
                           child: Column(
@@ -156,7 +157,7 @@ class _ReceiptPageState extends State<ReceiptPage> {
                                 padding: EdgeInsets.symmetric(vertical: 16.0),
                                 child: Divider(height: 1, color: Colors.black12),
                               ),
-                              _buildRow('Nominal', 'Rp ${CurrencyFormatter.format(amount)}', isBold: true, valueColor: Colors.blueAccent),
+                              _buildRow('Nominal', 'Rp ${CurrencyFormatter.format(amount)}', isBold: true, valueColor: AppColors.primaryColor),
                               const Padding(
                                 padding: EdgeInsets.symmetric(vertical: 16.0),
                                 child: Divider(height: 1, color: Colors.black12),
@@ -194,7 +195,7 @@ class _ReceiptPageState extends State<ReceiptPage> {
                           : const Icon(Icons.download, color: Colors.white),
                         label: Text(_isSaving ? 'Menyimpan...' : 'Download Struk', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blueAccent,
+                          backgroundColor: AppColors.primaryColor,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
@@ -207,10 +208,10 @@ class _ReceiptPageState extends State<ReceiptPage> {
                         onPressed: () => Navigator.pop(context),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          side: const BorderSide(color: Colors.blueAccent),
+                          side: const BorderSide(color: AppColors.primaryColor),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
-                        child: const Text('Kembali', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blueAccent)),
+                        child: const Text('Kembali', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primaryColor)),
                       ),
                     ),
                     const SizedBox(height: 40),

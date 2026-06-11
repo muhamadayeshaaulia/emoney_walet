@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/services/auth_service.dart';
 import '../../../../core/services/biometric_service.dart';
+import '../../../../core/theme/app_colors.dart';
 import 'login_page.dart';
 import '../../../dashboard/presentation/pages/main_navigation.dart';
 
@@ -57,7 +58,7 @@ class _SplashPageState extends State<SplashPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blueAccent,
+      backgroundColor: AppColors.primaryColor,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -71,7 +72,7 @@ class _SplashPageState extends State<SplashPage> {
               child: Image.asset(
                 'assets/logo/logo.png',
                 height: 120,
-                errorBuilder: (context, error, stackTrace) => const Icon(Icons.account_balance_wallet, size: 100, color: Colors.blueAccent),
+                errorBuilder: (context, error, stackTrace) => const Icon(Icons.account_balance_wallet, size: 100, color: AppColors.primaryColor),
               ),
             ),
             const SizedBox(height: 20),

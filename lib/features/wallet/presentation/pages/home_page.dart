@@ -7,6 +7,7 @@ import 'notification_page.dart';
 import 'top_up_page.dart';
 import '../../data/repositories/wallet_repository.dart';
 import '../../../../core/utils/currency_formatter.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -100,7 +101,7 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(height: 8),
                 Text(
                   'Rp ${CurrencyFormatter.format(_balance)}',
-                  style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.blueAccent),
+                  style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: AppColors.primaryColor),
                 ),
                 const SizedBox(height: 40),
                 Row(
@@ -123,7 +124,7 @@ class _HomePageState extends State<HomePage> {
                         icon: const Icon(Icons.refresh, color: Colors.white),
                         label: const Text('Refresh', style: TextStyle(color: Colors.white)),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blueAccent,
+                          backgroundColor: AppColors.primaryColor,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
                       ),

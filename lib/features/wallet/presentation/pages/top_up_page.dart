@@ -4,6 +4,7 @@ import '../../data/repositories/wallet_repository.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../main.dart'; // for flutterLocalNotificationsPlugin
+import '../../../../core/theme/app_colors.dart';
 
 class CurrencyInputFormatter extends TextInputFormatter {
   @override
@@ -190,7 +191,7 @@ class _TopUpPageState extends State<TopUpPage> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _processTopUp,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
+                  backgroundColor: AppColors.primaryColor,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
                 child: _isLoading 

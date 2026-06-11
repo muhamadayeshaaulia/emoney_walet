@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../../../../main.dart';
 import '../../../../core/services/auth_service.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/pages/login_page.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -82,8 +83,6 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profil Saya'),
-        backgroundColor: Colors.blueAccent,
-        foregroundColor: Colors.white,
       ),
       body: Center(
         child: Column(
@@ -91,7 +90,7 @@ class _ProfilePageState extends State<ProfilePage> {
           children: [
             const CircleAvatar(
               radius: 50,
-              backgroundColor: Colors.blueAccent,
+              backgroundColor: AppColors.primaryColor,
               child: Icon(Icons.person, size: 60, color: Colors.white),
             ),
             const SizedBox(height: 20),
@@ -104,7 +103,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 if (isVerified) ...[
                   const SizedBox(width: 8),
-                  const Icon(Icons.verified, color: Colors.blue, size: 24),
+                  const Icon(Icons.verified, color: AppColors.primaryColor, size: 24),
                 ]
               ],
             ),
@@ -124,8 +123,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   subtitle: const Text('Masuk lebih cepat & aman tanpa password'),
                   value: _isFingerprintEnabled,
                   onChanged: _toggleFingerprint,
-                  secondary: const Icon(Icons.fingerprint, color: Colors.blueAccent, size: 32),
-                  activeColor: Colors.blueAccent,
+                  secondary: const Icon(Icons.fingerprint, color: AppColors.primaryColor, size: 32),
+                  activeColor: AppColors.primaryColor,
                 ),
               ),
             ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../../core/theme/app_colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'receipt_page.dart';
 
@@ -48,7 +49,7 @@ class _NotificationPageState extends State<NotificationPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Notifikasi'),
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: AppColors.primaryColor,
         foregroundColor: Colors.white,
         actions: [
           if (_notifications.isNotEmpty)
@@ -111,7 +112,7 @@ class _NotificationPageState extends State<NotificationPage> {
                       },
                       child: ListTile(
                         leading: const CircleAvatar(
-                          backgroundColor: Colors.blueAccent,
+                          backgroundColor: AppColors.primaryColor,
                           child: Icon(Icons.notifications, color: Colors.white),
                         ),
                         title: Text(notif['title'], style: const TextStyle(fontWeight: FontWeight.bold)),

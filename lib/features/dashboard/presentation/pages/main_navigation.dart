@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../wallet/presentation/pages/home_page.dart';
 import '../../../wallet/presentation/pages/history_page.dart';
 import '../../../wallet/presentation/pages/profile_page.dart';
@@ -25,7 +26,7 @@ class _MainNavigationState extends State<MainNavigation> {
       body: _pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-        selectedItemColor: Colors.blueAccent,
+        selectedItemColor: AppColors.primaryColor,
         onTap: (index) {
           setState(() {
             _currentIndex = index;

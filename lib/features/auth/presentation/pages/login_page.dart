@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/services/auth_service.dart';
 import '../../../../core/services/biometric_service.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../dashboard/presentation/pages/main_navigation.dart';
 
 class LoginPage extends StatefulWidget {
@@ -124,7 +125,7 @@ class _LoginPageState extends State<LoginPage> {
                   Image.asset(
                     'assets/logo/logo.png',
                     height: 120,
-                    errorBuilder: (context, error, stackTrace) => const Icon(Icons.account_balance_wallet, size: 80, color: Colors.blueAccent),
+                    errorBuilder: (context, error, stackTrace) => const Icon(Icons.account_balance_wallet, size: 80, color: AppColors.primaryColor),
                   ),
                   const SizedBox(height: 24),
                   const Text('Selamat Datang di E-Money', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
@@ -159,7 +160,7 @@ class _LoginPageState extends State<LoginPage> {
                     height: 50,
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _login,
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent),
+                      style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor),
                       child: _isLoading 
                           ? const CircularProgressIndicator(color: Colors.white)
                           : const Text('LOGIN', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
@@ -183,8 +184,8 @@ class _LoginPageState extends State<LoginPage> {
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: _loginWithFingerprint,
-                          icon: const Icon(Icons.fingerprint, size: 24, color: Colors.blueAccent),
-                          label: const Text('Sidik Jari', style: TextStyle(color: Colors.blueAccent, fontSize: 13)),
+                          icon: const Icon(Icons.fingerprint, size: 24, color: AppColors.primaryColor),
+                          label: const Text('Sidik Jari', style: TextStyle(color: AppColors.primaryColor, fontSize: 13)),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
