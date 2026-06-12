@@ -133,64 +133,100 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
 
   void _showPinDialog() {
     final TextEditingController pinController = TextEditingController();
+    String currentOtpType = 'totp';
 
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Text('Masukkan OTP / PIN 2FA'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Masukkan OTP (TOTP/Email) Anda untuk menyetujui transfer/pembayaran ini.'),
-            const SizedBox(height: 16),
-            TextField(
-              controller: pinController,
-              keyboardType: TextInputType.number,
-              obscureText: true,
-              maxLength: 6,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: '******',
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Keamanan 2FA'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Masukkan OTP dari Google Authenticator atau Email Anda untuk menyetujui transaksi ini.'),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: pinController,
+                    keyboardType: TextInputType.number,
+                    obscureText: true,
+                    maxLength: 6,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: '******',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      final repository = WalletRepository();
+                      bool success = await repository.requestEmailOtp(widget.token);
+                      if (success) {
+                        setDialogState(() {
+                          currentOtpType = 'email';
+                        });
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('OTP telah dikirim ke email Anda!')),
+                          );
+                        }
+                      } else {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Gagal mengirim OTP ke email.')),
+                          );
+                        }
+                      }
+                    },
+                    icon: const Icon(Icons.email),
+                    label: const Text('Kirim OTP ke Email (SMTP)'),
+                  ),
+                  if (currentOtpType == 'email')
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8.0),
+                      child: Text('Gunakan OTP dari email', style: TextStyle(color: Colors.green, fontSize: 12)),
+                    )
+                ],
               ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final pin = pinController.text;
-              if (pin.length >= 4) {
-                Navigator.pop(context); // Tutup dialog
-                _processPayment(pin);
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('OTP tidak valid! Minimal 4 digit.')),
-                );
-              }
-            },
-            child: const Text('Verifikasi'),
-          ),
-        ],
-      ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Batal'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    final pin = pinController.text;
+                    if (pin.length >= 4) {
+                      Navigator.pop(context); // Tutup dialog
+                      _processPayment(pin, currentOtpType);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('OTP tidak valid! Minimal 4 digit.')),
+                      );
+                    }
+                  },
+                  child: const Text('Verifikasi'),
+                ),
+              ],
+            );
+          }
+        );
+      },
     );
   }
 
-  Future<void> _processPayment(String otpCode) async {
+  Future<void> _processPayment(String otpCode, String otpType) async {
     setState(() => _isLoading = true);
 
     try {
       final repository = WalletRepository();
-      // Saat ini kita hardcode 'totp' sebagai otp_type
       final responseModel = await repository.payTransaction(
         widget.amount,
         'Pembayaran Tagihan ${widget.invoiceId}',
         otpCode,
-        'totp',
+        otpType,
         widget.token
       );
 

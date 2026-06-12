@@ -11,4 +11,7 @@ class ApiConstants {
 
   // Auth endpoints
   static const String verifyToken = '/auth/verify-token';
+
+  // OTP endpoints
+  static const String otpSendEmail = '/otp/send-email';
 }

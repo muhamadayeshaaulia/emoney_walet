@@ -19,7 +19,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyCurlZkPJHmEhfAHXGEYBZt6DZLsWFqRLs', // Web API key might differ, but we put Android's for now
-    appId: '1:597810091743:web:dummy', 
+    appId: '1:597810091743:web:dummy',
     messagingSenderId: '597810091743',
     projectId: 'e-money-eceef',
     authDomain: 'e-money-eceef.firebaseapp.com',

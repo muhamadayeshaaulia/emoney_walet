@@ -46,6 +46,26 @@ class WalletRepository {
     return null;
   }
 
+  // Fungsi Minta OTP Email
+  Future<bool> requestEmailOtp(String token) async {
+    final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.otpSendEmail}');
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      if (response.statusCode == 200) {
+        return true;
+      }
+    } catch (e) {
+      print('Error requestEmailOtp: $e');
+    }
+    return false;
+  }
+
   // Fungsi Pay Transaction
   Future<PaymentResponseModel?> payTransaction(double amount, String description, String otpCode, String otpType, String token) async {
     final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.pay}');

@@ -48,7 +48,10 @@ class AuthService {
 
   static Future<String?> loginWithGoogle() async {
     try {
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      // Pass the Web Client ID directly to avoid cached values from the old project
+      final GoogleSignInAccount? googleUser = await GoogleSignIn(
+        serverClientId: '597810091743-i8evv5etr1qeusnmgrm0o66m41ies577.apps.googleusercontent.com',
+      ).signIn();
       if (googleUser == null) return "Dibatalkan oleh user";
 
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
