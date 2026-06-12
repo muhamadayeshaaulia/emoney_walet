@@ -13,23 +13,28 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _otpController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _isOtpSent = false;
+  String? _localError;
 
   void _register() async {
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+    if (_nameController.text.isEmpty || _emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Email dan Password wajib diisi')),
+        const SnackBar(content: Text('Nama, Email, dan Password wajib diisi')),
       );
       return;
     }
 
-    setState(() => _isLoading = true);
-    String? errorMessage = await AuthService.register(_emailController.text, _passwordController.text);
+    setState(() {
+      _isLoading = true;
+      _localError = null;
+    });
+    String? errorMessage = await AuthService.register(_nameController.text, _emailController.text, _passwordController.text);
     setState(() => _isLoading = false);
 
     if (errorMessage == null) {
@@ -42,11 +47,7 @@ class _RegisterPageState extends State<RegisterPage> {
         );
       }
     } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage)),
-        );
-      }
+      setState(() => _localError = errorMessage);
     }
   }
 
@@ -58,11 +59,14 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
-    setState(() => _isLoading = true);
-    bool success = await AuthService.verifyEmailOtp(_otpController.text);
+    setState(() {
+      _isLoading = true;
+      _localError = null;
+    });
+    String? error = await AuthService.verifyEmailOtp(_otpController.text);
     setState(() => _isLoading = false);
 
-    if (success) {
+    if (error == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Email berhasil diverifikasi!')),
@@ -74,11 +78,26 @@ class _RegisterPageState extends State<RegisterPage> {
         );
       }
     } else {
+      setState(() => _localError = error);
+    }
+  }
+
+  void _resendOtp() async {
+    setState(() {
+      _isLoading = true;
+      _localError = null;
+    });
+    String? error = await AuthService.resendEmailOtp();
+    setState(() => _isLoading = false);
+
+    if (error == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kode OTP salah atau kedaluwarsa')),
+          const SnackBar(content: Text('Kode OTP baru telah dikirim ke email Anda!')),
         );
       }
+    } else {
+      setState(() => _localError = error);
     }
   }
 
@@ -98,8 +117,14 @@ class _RegisterPageState extends State<RegisterPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Center(
-                child: Icon(Icons.person_add_rounded, size: 60, color: AppColors.primary),
+              Center(
+                child: Image.asset(
+                  'assets/logo/logo.png',
+                  height: 60,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Icon(Icons.person_add_rounded, size: 60, color: AppColors.primary);
+                  },
+                ),
               ),
               const SizedBox(height: 32),
               if (!_isOtpSent) ...[
@@ -115,6 +140,34 @@ class _RegisterPageState extends State<RegisterPage> {
                     style: TextStyle(fontSize: 14.5, color: AppColors.slate500)),
                 const SizedBox(height: 32),
                 
+                if (_localError != null) ...[
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.error_outline, color: Colors.red, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(_localError!, style: const TextStyle(color: Colors.red, fontSize: 13, fontWeight: FontWeight.w600)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
+                AppField(
+                  label: 'Nama Lengkap',
+                  value: _nameController.text,
+                  onChanged: (v) => _nameController.text = v,
+                  placeholder: 'Budi Santoso',
+                  prefixIcon: const Icon(Icons.person_outline, size: 20),
+                ),
+                const SizedBox(height: 16),
                 AppField(
                   label: 'Email Aktif',
                   value: _emailController.text,
@@ -157,6 +210,27 @@ class _RegisterPageState extends State<RegisterPage> {
                   style: const TextStyle(fontSize: 14.5, color: AppColors.slate500),
                 ),
                 const SizedBox(height: 32),
+
+                if (_localError != null) ...[
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.error_outline, color: Colors.red, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(_localError!, style: const TextStyle(color: Colors.red, fontSize: 13, fontWeight: FontWeight.w600)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
                 AppField(
                   label: 'Kode OTP (6 digit)',
                   value: _otpController.text,
@@ -171,6 +245,15 @@ class _RegisterPageState extends State<RegisterPage> {
                   label: 'VERIFIKASI OTP',
                   onPressed: _verifyOtp,
                   isLoading: _isLoading,
+                ),
+                const SizedBox(height: 16),
+                Center(
+                  child: TextButton(
+                    onPressed: _isLoading ? null : _resendOtp,
+                    child: const Text('Kirim Ulang Kode OTP',
+                      style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)
+                    ),
+                  ),
                 ),
               ]
             ],

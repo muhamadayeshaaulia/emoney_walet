@@ -115,6 +115,7 @@ class _LoginPageState extends State<LoginPage> {
   void _showOtpDialog() {
     final otpController = TextEditingController();
     bool isVerifying = false;
+    String? localError;
 
     showModalBottomSheet(
       context: context,
@@ -141,6 +142,25 @@ class _LoginPageState extends State<LoginPage> {
                   const Text('Kami baru saja mengirimkan 6 digit kode OTP ke email Anda. Silakan masukkan kode tersebut untuk melanjutkan Login.',
                     style: TextStyle(fontSize: 14, color: AppColors.slate500)),
                   const SizedBox(height: 24),
+                  if (localError != null) ...[
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.error_outline, color: Colors.red, size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(localError!, style: const TextStyle(color: Colors.red, fontSize: 13, fontWeight: FontWeight.w600)),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                   AppField(
                     label: 'Kode OTP (6 digit)',
                     value: otpController.text,
@@ -156,11 +176,14 @@ class _LoginPageState extends State<LoginPage> {
                     isLoading: isVerifying,
                     onPressed: () async {
                       if (otpController.text.isEmpty) return;
-                      setModalState(() => isVerifying = true);
-                      bool success = await AuthService.verifyEmailOtp(otpController.text);
+                      setModalState(() {
+                        isVerifying = true;
+                        localError = null;
+                      });
+                      String? error = await AuthService.verifyEmailOtp(otpController.text);
                       setModalState(() => isVerifying = false);
 
-                      if (success) {
+                      if (error == null) {
                         if (!mounted) return;
                         Navigator.pop(context); // tutup bottom sheet
                         Navigator.pushReplacement(
@@ -168,9 +191,107 @@ class _LoginPageState extends State<LoginPage> {
                           MaterialPageRoute(builder: (context) => const MainNavigation()),
                         );
                       } else {
+                        setModalState(() => localError = error);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  Center(
+                    child: TextButton(
+                      onPressed: isVerifying ? null : () async {
+                        setModalState(() {
+                          isVerifying = true;
+                          localError = null;
+                        });
+                        String? error = await AuthService.resendEmailOtp();
+                        setModalState(() => isVerifying = false);
+                        
+                        if (!mounted) return;
+                        if (error == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Kode OTP baru telah dikirim ke email Anda!')),
+                          );
+                        } else {
+                          setModalState(() => localError = error);
+                        }
+                      },
+                      child: const Text('Kirim Ulang Kode OTP',
+                        style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                ],
+              ),
+            );
+          }
+        );
+      },
+    );
+  }
+
+  void _showForgotPasswordDialog() {
+    final emailController = TextEditingController(text: _emailController.text);
+    bool isSending = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+                left: 26, right: 26, top: 32,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Atur Ulang Kata Sandi',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.ink)),
+                  const SizedBox(height: 12),
+                  const Text('Masukkan alamat email yang terdaftar. Kami akan mengirimkan tautan untuk membuat kata sandi baru.',
+                    style: TextStyle(fontSize: 14, color: AppColors.slate500)),
+                  const SizedBox(height: 24),
+                  AppField(
+                    label: 'Email Terdaftar',
+                    value: emailController.text,
+                    onChanged: (v) => emailController.text = v,
+                    placeholder: 'nama@email.com',
+                    keyboardType: TextInputType.emailAddress,
+                    prefixIcon: const Icon(Icons.email_outlined, size: 20),
+                  ),
+                  const SizedBox(height: 24),
+                  AppButton(
+                    label: 'KIRIM TAUTAN',
+                    isLoading: isSending,
+                    onPressed: () async {
+                      if (emailController.text.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Email tidak boleh kosong')),
+                        );
+                        return;
+                      }
+                      setModalState(() => isSending = true);
+                      String? error = await AuthService.resetPassword(emailController.text);
+                      setModalState(() => isSending = false);
+
+                      if (error == null) {
+                        if (!mounted) return;
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Tautan berhasil dikirim! Silakan periksa email Anda.')),
+                        );
+                      } else {
                         if (!mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Kode OTP salah atau sudah kadaluarsa!')),
+                          SnackBar(content: Text(error)),
                         );
                       }
                     },
@@ -195,8 +316,14 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Center(
-                child: Icon(Icons.account_balance_wallet, size: 60, color: AppColors.primary),
+              Center(
+                child: Image.asset(
+                  'assets/logo/logo.png',
+                  height: 60,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Icon(Icons.account_balance_wallet, size: 60, color: AppColors.primary);
+                  },
+                ),
               ),
               const SizedBox(height: 32),
               const Text('Masuk E-Money',
@@ -284,7 +411,7 @@ class _LoginPageState extends State<LoginPage> {
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () {},
+                  onPressed: _showForgotPasswordDialog,
                   child: const Text('Lupa kata sandi?',
                       style: TextStyle(
                         color: AppColors.primary,

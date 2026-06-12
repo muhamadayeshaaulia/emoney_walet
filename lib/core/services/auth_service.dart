@@ -109,7 +109,7 @@ class AuthService {
     // saved_email dan saved_password TIDAK dihapus agar fingerprint tetap bisa dipakai
   }
 
-  static Future<String?> register(String email, String password) async {
+  static Future<String?> register(String name, String email, String password) async {
     try {
       // 1. Buat akun di Firebase
       UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
@@ -117,14 +117,20 @@ class AuthService {
         password: password,
       );
 
-      // 2. Ambil Firebase Token
-      String? firebaseToken = await userCredential.user?.getIdToken();
+      // Update Display Name di Firebase
+      await userCredential.user?.updateDisplayName(name);
+
+      // 2. Ambil Firebase Token (force refresh agar name masuk payload)
+      String? firebaseToken = await userCredential.user?.getIdToken(true);
       if (firebaseToken == null) return "Gagal mendapatkan token Firebase";
 
       // 3. Register ke backend Golang (akan mengirim SMTP OTP)
       final response = await DioClient.instance.post(
         ApiConstants.register,
-        data: {'firebase_token': firebaseToken},
+        data: {
+          'firebase_token': firebaseToken,
+          'name': name, // Kirim juga secara eksplisit kalau backend butuh
+        },
       );
 
       if (response.statusCode == 200 && response.data['success'] == true) {
@@ -148,10 +154,10 @@ class AuthService {
     }
   }
 
-  static Future<bool> verifyEmailOtp(String code) async {
+  static Future<String?> verifyEmailOtp(String code) async {
     try {
       String? token = await getToken();
-      if (token == null) return false;
+      if (token == null) return "Sesi tidak valid, silakan login ulang.";
 
       final response = await DioClient.instance.post(
         ApiConstants.verifyEmailOtp,
@@ -159,10 +165,54 @@ class AuthService {
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
-      return response.statusCode == 200 && response.data['success'] == true;
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        return null; // Sukses
+      }
+      return response.data['message'] ?? "Kode OTP tidak valid atau kedaluwarsa.";
     } catch (e) {
-      debugPrint('Verify Email OTP Error: $e');
-      return false;
+      if (e is DioException) {
+        if (e.response?.data is Map) {
+          return e.response?.data['message'] ?? "Kode OTP tidak valid atau kedaluwarsa.";
+        }
+        return "Kode OTP tidak valid atau kedaluwarsa.";
+      }
+      return "Terjadi kesalahan sistem";
+    }
+  }
+
+  static Future<String?> resendEmailOtp() async {
+    try {
+      String? token = await getToken();
+      if (token == null) return "Sesi tidak valid, silakan login ulang.";
+
+      final response = await DioClient.instance.post(
+        ApiConstants.otpSendEmail,
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      if (response.statusCode == 200) {
+        return null; // Sukses kirim ulang
+      }
+      return "Gagal mengirim ulang OTP.";
+    } catch (e) {
+      if (e is DioException) {
+        if (e.response?.data is Map) {
+          return e.response?.data['message'] ?? "Gagal mengirim ulang OTP.";
+        }
+      }
+      return "Terjadi kesalahan saat mengirim ulang OTP.";
+    }
+  }
+
+  static Future<String?> resetPassword(String email) async {
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      return null;
+    } catch (e) {
+      if (e is FirebaseAuthException) {
+        return "Gagal: ${e.message}";
+      }
+      return "Terjadi kesalahan sistem";
     }
   }
 }
