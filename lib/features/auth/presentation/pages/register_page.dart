@@ -87,7 +87,7 @@ class _RegisterPageState extends State<RegisterPage> {
       _isLoading = true;
       _localError = null;
     });
-    String? error = await AuthService.resendEmailOtp();
+    String? error = await AuthService.resendEmailOtp(action: 'register');
     setState(() => _isLoading = false);
 
     if (error == null) {

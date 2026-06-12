@@ -88,7 +88,7 @@ class _ProfilePageState extends State<ProfilePage> {
       barrierDismissible: false,
       builder: (_) => const Center(child: CircularProgressIndicator()),
     );
-    String? sendError = await AuthService.resendEmailOtp();
+    String? sendError = await AuthService.resendEmailOtp(action: 'activation');
     if (!mounted) return;
     Navigator.pop(context); // Tutup loading
 
@@ -177,8 +177,21 @@ class _ProfilePageState extends State<ProfilePage> {
                         setState(() {
                           _isOtpLoginEnabled = true;
                         });
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Login dengan OTP berhasil diaktifkan!')),
+                        
+                        const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+                          'emoney_channel',
+                          'Notifikasi E-Money',
+                          channelDescription: 'Notifikasi sistem E-Money',
+                          importance: Importance.max,
+                          priority: Priority.high,
+                        );
+                        const NotificationDetails notificationDetails = NotificationDetails(android: androidDetails);
+                        
+                        await flutterLocalNotificationsPlugin.show(
+                          2,
+                          'Keamanan OTP Aktif! 🛡️',
+                          'Sekarang akun Anda dilindungi dengan kode OTP setiap kali login.',
+                          notificationDetails,
                         );
                       } else {
                         setModalState(() => localError = error);
@@ -193,7 +206,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           isVerifying = true;
                           localError = null;
                         });
-                        String? error = await AuthService.resendEmailOtp();
+                        String? error = await AuthService.resendEmailOtp(action: 'activation');
                         setModalState(() => isVerifying = false);
                         
                         if (!mounted) return;
@@ -232,11 +245,22 @@ class _ProfilePageState extends State<ProfilePage> {
       setState(() {
         _isOtpLoginEnabled = false;
       });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login dengan OTP telah dinonaktifkan.')),
-        );
-      }
+
+      const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+        'emoney_channel',
+        'Notifikasi E-Money',
+        channelDescription: 'Notifikasi sistem E-Money',
+        importance: Importance.max,
+        priority: Priority.high,
+      );
+      const NotificationDetails notificationDetails = NotificationDetails(android: androidDetails);
+      
+      await flutterLocalNotificationsPlugin.show(
+        3,
+        'Keamanan OTP Dinonaktifkan ⚠️',
+        'Login dengan OTP telah dimatikan. Akun Anda sekarang lebih rentan.',
+        notificationDetails,
+      );
     }
   }
 

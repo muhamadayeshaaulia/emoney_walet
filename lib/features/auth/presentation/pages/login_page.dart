@@ -20,11 +20,26 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
   bool _isPasswordVisible = false;
   bool _hasBiometric = false;
+  bool _hasOtpQuickLogin = false;
 
   @override
   void initState() {
     super.initState();
     _checkBiometric();
+    _checkOtpQuickLogin();
+  }
+
+  void _checkOtpQuickLogin() async {
+    final uid = await AuthService.getSavedUid();
+    final prefs = await SharedPreferences.getInstance();
+    if (uid != null) {
+      bool isEnabled = prefs.getBool('is_otp_login_enabled_$uid') ?? false;
+      if (mounted) {
+        setState(() {
+          _hasOtpQuickLogin = isEnabled;
+        });
+      }
+    }
   }
 
   void _checkBiometric() async {
@@ -62,6 +77,35 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  void _loginWithOtpQuick() async {
+    setState(() => _isLoading = true);
+    String? email = await AuthService.getSavedEmail();
+    String? password = await AuthService.getSavedPassword();
+    if (email != null && password != null) {
+      String? errorMessage = await AuthService.login(email, password, bypassOtp: false);
+      setState(() => _isLoading = false);
+      if (errorMessage == "OTP_REQUIRED") {
+        _showOtpDialog();
+      } else if (errorMessage == null) {
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MainNavigation()),
+        );
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
+      }
+    } else {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Tidak ada data login tersimpan, silakan login manual.")),
+      );
+    }
+  }
+
   void _loginWithGoogle() async {
     setState(() => _isLoading = true);
     String? errorMessage = await AuthService.loginWithGoogle();
@@ -90,7 +134,7 @@ class _LoginPageState extends State<LoginPage> {
       String? email = await AuthService.getSavedEmail();
       String? password = await AuthService.getSavedPassword();
       if (email != null && password != null) {
-        String? errorMessage = await AuthService.login(email, password);
+        String? errorMessage = await AuthService.login(email, password, bypassOtp: true);
         setState(() => _isLoading = false);
         if (errorMessage == "OTP_REQUIRED") {
           _showOtpDialog();
@@ -203,7 +247,7 @@ class _LoginPageState extends State<LoginPage> {
                           isVerifying = true;
                           localError = null;
                         });
-                        String? error = await AuthService.resendEmailOtp();
+                        String? error = await AuthService.resendEmailOtp(action: 'login');
                         setModalState(() => isVerifying = false);
                         
                         if (!mounted) return;
@@ -426,7 +470,13 @@ class _LoginPageState extends State<LoginPage> {
                 onPressed: _login,
                 isLoading: _isLoading,
               ),
-              const SizedBox(height: 16),
+              if (_hasBiometric || _hasOtpQuickLogin) ...[
+                const SizedBox(height: 16),
+                const Center(
+                  child: Text('ATAU', style: TextStyle(color: AppColors.slate500, fontSize: 12, fontWeight: FontWeight.bold)),
+                ),
+                const SizedBox(height: 16),
+              ],
               
               if (_hasBiometric)
                 AppButton(
@@ -434,6 +484,15 @@ class _LoginPageState extends State<LoginPage> {
                   onPressed: _isLoading ? null : _loginWithFingerprint,
                   variant: AppButtonVariant.outline,
                   icon: const Icon(Icons.fingerprint, color: AppColors.primary),
+                ),
+              if (_hasBiometric && _hasOtpQuickLogin)
+                const SizedBox(height: 12),
+              if (_hasOtpQuickLogin)
+                AppButton(
+                  label: 'Masuk dengan OTP',
+                  onPressed: _isLoading ? null : _loginWithOtpQuick,
+                  variant: AppButtonVariant.outline,
+                  icon: const Icon(Icons.security, color: AppColors.primary),
                 ),
                 
               const SizedBox(height: 24),

@@ -10,7 +10,7 @@ import '../constants/api_constants.dart';
 class AuthService {
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
 
-  static Future<String?> login(String email, String password) async {
+  static Future<String?> login(String email, String password, {bool bypassOtp = false}) async {
     try {
       UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
@@ -23,6 +23,7 @@ class AuthService {
       // Cek preferensi OTP lokal
       final prefs = await SharedPreferences.getInstance();
       bool isOtpEnabled = prefs.getBool('is_otp_login_enabled_${userCredential.user?.uid}') ?? false;
+      if (bypassOtp) isOtpEnabled = false; // Bypass OTP jika lewat sidik jari
 
       // Gunakan endpoint yang sesuai
       String endpoint = isOtpEnabled ? ApiConstants.register : ApiConstants.verifyToken;
@@ -40,6 +41,7 @@ class AuthService {
         
         await _storage.write(key: 'saved_email', value: email);
         await _storage.write(key: 'saved_password', value: password);
+        await _storage.write(key: 'saved_uid', value: userCredential.user?.uid);
         
         return isOtpEnabled ? "OTP_REQUIRED" : null;
       }
@@ -93,6 +95,7 @@ class AuthService {
         String userName = response.data['data']['user']['name'] ?? 'Pengguna E-Money';
         await _storage.write(key: 'auth_token', value: jwtToken);
         await _storage.write(key: 'user_name', value: userName);
+        await _storage.write(key: 'saved_uid', value: userCredential.user?.uid);
         return isOtpEnabled ? "OTP_REQUIRED" : null; 
       }
       return "Gagal login di backend: ${response.data['message'] ?? response.data}";
@@ -122,6 +125,10 @@ class AuthService {
 
   static Future<String?> getSavedPassword() async {
     return await _storage.read(key: 'saved_password');
+  }
+
+  static Future<String?> getSavedUid() async {
+    return await _storage.read(key: 'saved_uid');
   }
 
   static Future<void> logout() async {
@@ -202,13 +209,14 @@ class AuthService {
     }
   }
 
-  static Future<String?> resendEmailOtp() async {
+  static Future<String?> resendEmailOtp({String? action}) async {
     try {
       String? token = await getToken();
       if (token == null) return "Sesi tidak valid, silakan login ulang.";
 
       final response = await DioClient.instance.post(
         ApiConstants.otpSendEmail,
+        data: action != null ? {'action': action} : null,
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
