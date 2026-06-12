@@ -29,7 +29,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyCurlZkPJHmEhfAHXGEYBZt6DZLsWFqRLs',
-    appId: '1:597810091743:android:79a533fbbb8fd3bdab3b6a',
+    appId: '1:597810091743:android:936cf58bfa68e228ab3b6a',
     messagingSenderId: '597810091743',
     projectId: 'e-money-eceef',
     storageBucket: 'e-money-eceef.firebasestorage.app',

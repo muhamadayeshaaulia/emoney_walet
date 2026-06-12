@@ -16,17 +16,22 @@ class _RegisterPageState extends State<RegisterPage> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _otpController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
   bool _isOtpSent = false;
   String? _localError;
 
   void _register() async {
-    if (_nameController.text.isEmpty || _emailController.text.isEmpty || _passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nama, Email, dan Password wajib diisi')),
-      );
+    if (_nameController.text.isEmpty || _emailController.text.isEmpty || _passwordController.text.isEmpty || _confirmPasswordController.text.isEmpty) {
+      setState(() => _localError = "Semua kolom harus diisi!");
+      return;
+    }
+    
+    if (_passwordController.text != _confirmPasswordController.text) {
+      setState(() => _localError = "Kata sandi dan konfirmasi tidak cocok!");
       return;
     }
 
@@ -182,6 +187,20 @@ class _RegisterPageState extends State<RegisterPage> {
                     icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility,
                         size: 20, color: AppColors.slate400),
                     onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                AppField(
+                  label: 'Konfirmasi Kata sandi',
+                  value: _confirmPasswordController.text,
+                  onChanged: (v) => _confirmPasswordController.text = v,
+                  obscureText: _obscureConfirmPassword,
+                  placeholder: '••••••••',
+                  prefixIcon: const Icon(Icons.lock_outline, size: 20),
+                  suffixIcon: IconButton(
+                    icon: Icon(_obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                        size: 20, color: AppColors.slate400),
+                    onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
                   ),
                 ),
                 const SizedBox(height: 32),

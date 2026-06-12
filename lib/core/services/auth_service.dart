@@ -10,23 +10,29 @@ import '../constants/api_constants.dart';
 class AuthService {
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
 
-  static Future<String?> login(String email, String password, {bool bypassOtp = false}) async {
+  static Future<String?> login(
+    String email,
+    String password, {
+    bool bypassOtp = false,
+  }) async {
     try {
-      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      UserCredential userCredential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: password);
 
       String? firebaseToken = await userCredential.user?.getIdToken();
       if (firebaseToken == null) return "Gagal mendapatkan token Firebase";
 
       // Cek preferensi OTP lokal
       final prefs = await SharedPreferences.getInstance();
-      bool isOtpEnabled = prefs.getBool('is_otp_login_enabled_${userCredential.user?.uid}') ?? false;
+      bool isOtpEnabled =
+          prefs.getBool('is_otp_login_enabled_${userCredential.user?.uid}') ??
+          false;
       if (bypassOtp) isOtpEnabled = false; // Bypass OTP jika lewat sidik jari
 
       // Gunakan endpoint yang sesuai
-      String endpoint = isOtpEnabled ? ApiConstants.register : ApiConstants.verifyToken;
+      String endpoint = isOtpEnabled
+          ? ApiConstants.register
+          : ApiConstants.verifyToken;
 
       final response = await DioClient.instance.post(
         endpoint,
@@ -35,21 +41,23 @@ class AuthService {
 
       if (response.statusCode == 200 && response.data['success'] == true) {
         String jwtToken = response.data['data']['access_token'];
-        String userName = response.data['data']['user']['name'] ?? 'Pengguna E-Money';
+        String userName =
+            response.data['data']['user']['name'] ?? 'Pengguna E-Money';
         await _storage.write(key: 'auth_token', value: jwtToken);
         await _storage.write(key: 'user_name', value: userName);
-        
+
         await _storage.write(key: 'saved_email', value: email);
         await _storage.write(key: 'saved_password', value: password);
         await _storage.write(key: 'saved_uid', value: userCredential.user?.uid);
-        
+
         return isOtpEnabled ? "OTP_REQUIRED" : null;
       }
       return "Login gagal: ${response.data['message'] ?? response.data}";
     } catch (e) {
       debugPrint('Login Error: $e');
       if (e is DioException) {
-        if (e.response?.statusCode == 403 && e.response?.data['error_code'] == 'EMAIL_NOT_VERIFIED') {
+        if (e.response?.statusCode == 403 &&
+            e.response?.data['error_code'] == 'EMAIL_NOT_VERIFIED') {
           return "Email belum diverifikasi. Cek inbox Anda untuk link verifikasi.";
         }
         return "Network Error: ${e.response?.data['message'] ?? e.message}";
@@ -62,17 +70,20 @@ class AuthService {
     try {
       // Harus menggunakan serverClientId untuk Google Auth Firebase
       final GoogleSignInAccount? googleUser = await GoogleSignIn(
-        serverClientId: '597810091743-i8evv5etr1qeusnmgrm0o66m41ies577.apps.googleusercontent.com',
+        serverClientId:
+            '597810091743-i8evv5etr1qeusnmgrm0o66m41ies577.apps.googleusercontent.com',
       ).signIn();
       if (googleUser == null) return "Dibatalkan oleh user";
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
       final AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
       // 1. Login Firebase dengan Google Credential
-      UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      UserCredential userCredential = await FirebaseAuth.instance
+          .signInWithCredential(credential);
 
       // 2. Ambil Firebase Token
       String? firebaseToken = await userCredential.user?.getIdToken();
@@ -80,10 +91,14 @@ class AuthService {
 
       // Cek preferensi OTP lokal
       final prefs = await SharedPreferences.getInstance();
-      bool isOtpEnabled = prefs.getBool('is_otp_login_enabled_${userCredential.user?.uid}') ?? false;
+      bool isOtpEnabled =
+          prefs.getBool('is_otp_login_enabled_${userCredential.user?.uid}') ??
+          false;
 
       // 3. Tukar dengan JWT Golang
-      String endpoint = isOtpEnabled ? ApiConstants.register : ApiConstants.verifyToken;
+      String endpoint = isOtpEnabled
+          ? ApiConstants.register
+          : ApiConstants.verifyToken;
       final response = await DioClient.instance.post(
         endpoint,
         data: {'firebase_token': firebaseToken},
@@ -92,17 +107,22 @@ class AuthService {
       if (response.statusCode == 200 && response.data['success'] == true) {
         // 4. Simpan JWT Token di Secure Storage
         String jwtToken = response.data['data']['access_token'];
-        String userName = response.data['data']['user']['name'] ?? 'Pengguna E-Money';
+        String userName =
+            response.data['data']['user']['name'] ?? 'Pengguna E-Money';
         await _storage.write(key: 'auth_token', value: jwtToken);
         await _storage.write(key: 'user_name', value: userName);
-        await _storage.write(key: 'saved_uid', value: userCredential.user?.uid);
-        return isOtpEnabled ? "OTP_REQUIRED" : null; 
+        // Kita TIDAK menyimpan saved_uid, saved_email, dan saved_password di sini
+        // agar fitur Quick Login (Sidik Jari/OTP) tetap menjadi hak milik akun
+        // terakhir yang login menggunakan Email & Password secara manual.
+
+        return isOtpEnabled ? "OTP_REQUIRED" : null;
       }
       return "Gagal login di backend: ${response.data['message'] ?? response.data}";
     } catch (e) {
       debugPrint('Google Login Error: $e');
       if (e is DioException) {
-        if (e.response?.statusCode == 403 && e.response?.data['error_code'] == 'EMAIL_NOT_VERIFIED') {
+        if (e.response?.statusCode == 403 &&
+            e.response?.data['error_code'] == 'EMAIL_NOT_VERIFIED') {
           return "Email Google belum diverifikasi. Cek inbox Anda untuk link verifikasi.";
         }
         return "Network Error: ${e.response?.data['message'] ?? e.message}";
@@ -133,18 +153,21 @@ class AuthService {
 
   static Future<void> logout() async {
     await FirebaseAuth.instance.signOut();
-    await GoogleSignIn().signOut(); // Supaya bisa pilih akun Google lain saat login lagi
+    await GoogleSignIn()
+        .signOut(); // Supaya bisa pilih akun Google lain saat login lagi
     await _storage.delete(key: 'auth_token');
     // saved_email dan saved_password TIDAK dihapus agar fingerprint tetap bisa dipakai
   }
 
-  static Future<String?> register(String name, String email, String password) async {
+  static Future<String?> register(
+    String name,
+    String email,
+    String password,
+  ) async {
     try {
       // 1. Buat akun di Firebase
-      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
 
       // Update Display Name di Firebase
       await userCredential.user?.updateDisplayName(name);
@@ -164,7 +187,8 @@ class AuthService {
 
       if (response.statusCode == 200 && response.data['success'] == true) {
         String jwtToken = response.data['data']['access_token'];
-        String userName = response.data['data']['user']['name'] ?? 'Pengguna E-Money';
+        String userName =
+            response.data['data']['user']['name'] ?? 'Pengguna E-Money';
         await _storage.write(key: 'auth_token', value: jwtToken);
         await _storage.write(key: 'user_name', value: userName);
         await _storage.write(key: 'saved_email', value: email);
@@ -197,11 +221,13 @@ class AuthService {
       if (response.statusCode == 200 && response.data['success'] == true) {
         return null; // Sukses
       }
-      return response.data['message'] ?? "Kode OTP tidak valid atau kedaluwarsa.";
+      return response.data['message'] ??
+          "Kode OTP tidak valid atau kedaluwarsa.";
     } catch (e) {
       if (e is DioException) {
         if (e.response?.data is Map) {
-          return e.response?.data['message'] ?? "Kode OTP tidak valid atau kedaluwarsa.";
+          return e.response?.data['message'] ??
+              "Kode OTP tidak valid atau kedaluwarsa.";
         }
         return "Kode OTP tidak valid atau kedaluwarsa.";
       }

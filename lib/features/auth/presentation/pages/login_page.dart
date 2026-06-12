@@ -22,12 +22,24 @@ class _LoginPageState extends State<LoginPage> {
   bool _isPasswordVisible = false;
   bool _hasBiometric = false;
   bool _hasOtpQuickLogin = false;
+  bool _hasSavedCredentials = false;
 
   @override
   void initState() {
     super.initState();
+    _checkSavedCredentials();
     _checkBiometric();
     _checkOtpQuickLogin();
+  }
+
+  void _checkSavedCredentials() async {
+    final email = await AuthService.getSavedEmail();
+    final password = await AuthService.getSavedPassword();
+    if (mounted) {
+      setState(() {
+        _hasSavedCredentials = (email != null && password != null);
+      });
+    }
   }
 
   void _checkOtpQuickLogin() async {
@@ -471,7 +483,7 @@ class _LoginPageState extends State<LoginPage> {
                 onPressed: _login,
                 isLoading: _isLoading,
               ),
-              if (_hasBiometric || _hasOtpQuickLogin) ...[
+              if (_hasSavedCredentials && (_hasBiometric || _hasOtpQuickLogin)) ...[
                 const SizedBox(height: 16),
                 const Center(
                   child: Text('ATAU', style: TextStyle(color: AppColors.slate500, fontSize: 12, fontWeight: FontWeight.bold)),
@@ -479,16 +491,16 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 16),
               ],
               
-              if (_hasBiometric)
+              if (_hasSavedCredentials && _hasBiometric)
                 AppButton(
                   label: 'Masuk dengan Sidik Jari',
                   onPressed: _isLoading ? null : _loginWithFingerprint,
                   variant: AppButtonVariant.outline,
                   icon: const Icon(Icons.fingerprint, color: AppColors.primary),
                 ),
-              if (_hasBiometric && _hasOtpQuickLogin)
+              if (_hasSavedCredentials && _hasBiometric && _hasOtpQuickLogin)
                 const SizedBox(height: 12),
-              if (_hasOtpQuickLogin)
+              if (_hasSavedCredentials && _hasOtpQuickLogin)
                 AppButton(
                   label: 'Masuk dengan OTP',
                   onPressed: _isLoading ? null : _loginWithOtpQuick,
