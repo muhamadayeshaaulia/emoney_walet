@@ -2,9 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../network/dio_client.dart';
 import '../constants/api_constants.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
@@ -19,9 +20,15 @@ class AuthService {
       String? firebaseToken = await userCredential.user?.getIdToken();
       if (firebaseToken == null) return "Gagal mendapatkan token Firebase";
 
-      // Gunakan endpoint register untuk MENGIRIM OTP
+      // Cek preferensi OTP lokal
+      final prefs = await SharedPreferences.getInstance();
+      bool isOtpEnabled = prefs.getBool('is_otp_login_enabled_${userCredential.user?.uid}') ?? false;
+
+      // Gunakan endpoint yang sesuai
+      String endpoint = isOtpEnabled ? ApiConstants.register : ApiConstants.verifyToken;
+
       final response = await DioClient.instance.post(
-        ApiConstants.register,
+        endpoint,
         data: {'firebase_token': firebaseToken},
       );
 
@@ -33,11 +40,18 @@ class AuthService {
         
         await _storage.write(key: 'saved_email', value: email);
         await _storage.write(key: 'saved_password', value: password);
-        return "OTP_REQUIRED";
+        
+        return isOtpEnabled ? "OTP_REQUIRED" : null;
       }
-      return "Login gagal: ${response.data}";
+      return "Login gagal: ${response.data['message'] ?? response.data}";
     } catch (e) {
       debugPrint('Login Error: $e');
+      if (e is DioException) {
+        if (e.response?.statusCode == 403 && e.response?.data['error_code'] == 'EMAIL_NOT_VERIFIED') {
+          return "Email belum diverifikasi. Cek inbox Anda untuk link verifikasi.";
+        }
+        return "Network Error: ${e.response?.data['message'] ?? e.message}";
+      }
       return "Terjadi kesalahan saat login";
     }
   }
@@ -62,9 +76,14 @@ class AuthService {
       String? firebaseToken = await userCredential.user?.getIdToken();
       if (firebaseToken == null) return "Gagal mendapatkan token Firebase";
 
-      // 3. Tukar dengan JWT Golang & Kirim OTP
+      // Cek preferensi OTP lokal
+      final prefs = await SharedPreferences.getInstance();
+      bool isOtpEnabled = prefs.getBool('is_otp_login_enabled_${userCredential.user?.uid}') ?? false;
+
+      // 3. Tukar dengan JWT Golang
+      String endpoint = isOtpEnabled ? ApiConstants.register : ApiConstants.verifyToken;
       final response = await DioClient.instance.post(
-        ApiConstants.register,
+        endpoint,
         data: {'firebase_token': firebaseToken},
       );
 
@@ -74,13 +93,16 @@ class AuthService {
         String userName = response.data['data']['user']['name'] ?? 'Pengguna E-Money';
         await _storage.write(key: 'auth_token', value: jwtToken);
         await _storage.write(key: 'user_name', value: userName);
-        return "OTP_REQUIRED"; 
+        return isOtpEnabled ? "OTP_REQUIRED" : null; 
       }
-      return "Gagal login di backend: ${response.data}";
+      return "Gagal login di backend: ${response.data['message'] ?? response.data}";
     } catch (e) {
       debugPrint('Google Login Error: $e');
       if (e is DioException) {
-        return "Network Error: ${e.message} - ${e.response?.data}";
+        if (e.response?.statusCode == 403 && e.response?.data['error_code'] == 'EMAIL_NOT_VERIFIED') {
+          return "Email Google belum diverifikasi. Cek inbox Anda untuk link verifikasi.";
+        }
+        return "Network Error: ${e.response?.data['message'] ?? e.message}";
       }
       return "Google Login Error: $e";
     }

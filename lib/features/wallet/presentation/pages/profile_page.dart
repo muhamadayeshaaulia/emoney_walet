@@ -5,6 +5,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../../../../main.dart';
 import '../../../../core/services/auth_service.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/app_button.dart';
+import '../../../../core/widgets/app_field.dart';
 import '../../../auth/presentation/pages/login_page.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -16,12 +18,13 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   bool? _isFingerprintEnabled;
+  bool? _isOtpLoginEnabled;
   String _userName = 'Memuat...';
 
   @override
   void initState() {
     super.initState();
-    _loadFingerprintSetting();
+    _loadSettings();
     _loadUserName();
   }
 
@@ -34,11 +37,13 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  void _loadFingerprintSetting() async {
+  void _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
+    final uid = FirebaseAuth.instance.currentUser?.uid;
     if (mounted) {
       setState(() {
         _isFingerprintEnabled = prefs.getBool('is_fingerprint_enabled') ?? false;
+        _isOtpLoginEnabled = prefs.getBool('is_otp_login_enabled_$uid') ?? false;
       });
     }
   }
@@ -73,6 +78,165 @@ class _ProfilePageState extends State<ProfilePage> {
     await AuthService.logout();
     if (context.mounted) {
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginPage()));
+    }
+  }
+
+  void _showOtpVerificationDialog() async {
+    // Kirim OTP dulu
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+    String? sendError = await AuthService.resendEmailOtp();
+    if (!mounted) return;
+    Navigator.pop(context); // Tutup loading
+
+    if (sendError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(sendError)));
+      return;
+    }
+
+    final otpController = TextEditingController();
+    bool isVerifying = false;
+    String? localError;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+                left: 26, right: 26, top: 32,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Verifikasi Email (OTP)',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.ink)),
+                  const SizedBox(height: 12),
+                  const Text('Untuk mengaktifkan Login OTP, silakan masukkan 6 digit kode OTP yang baru saja kami kirimkan ke email Anda.',
+                    style: TextStyle(fontSize: 14, color: AppColors.slate500)),
+                  const SizedBox(height: 24),
+                  if (localError != null) ...[
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.error_outline, color: Colors.red, size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(localError!, style: const TextStyle(color: Colors.red, fontSize: 13, fontWeight: FontWeight.w600)),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  AppField(
+                    label: 'Kode OTP (6 digit)',
+                    value: otpController.text,
+                    onChanged: (v) => otpController.text = v,
+                    placeholder: '123456',
+                    keyboardType: TextInputType.number,
+                    maxLength: 6,
+                    prefixIcon: const Icon(Icons.security, size: 20),
+                  ),
+                  const SizedBox(height: 24),
+                  AppButton(
+                    label: 'AKTIFKAN OTP',
+                    isLoading: isVerifying,
+                    onPressed: () async {
+                      if (otpController.text.isEmpty) return;
+                      setModalState(() {
+                        isVerifying = true;
+                        localError = null;
+                      });
+                      String? error = await AuthService.verifyEmailOtp(otpController.text);
+                      setModalState(() => isVerifying = false);
+
+                      if (error == null) {
+                        if (!mounted) return;
+                        Navigator.pop(context); // Tutup bottom sheet
+                        // Simpan settingan
+                        final prefs = await SharedPreferences.getInstance();
+                        final uid = FirebaseAuth.instance.currentUser?.uid;
+                        await prefs.setBool('is_otp_login_enabled_$uid', true);
+                        setState(() {
+                          _isOtpLoginEnabled = true;
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Login dengan OTP berhasil diaktifkan!')),
+                        );
+                      } else {
+                        setModalState(() => localError = error);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  Center(
+                    child: TextButton(
+                      onPressed: isVerifying ? null : () async {
+                        setModalState(() {
+                          isVerifying = true;
+                          localError = null;
+                        });
+                        String? error = await AuthService.resendEmailOtp();
+                        setModalState(() => isVerifying = false);
+                        
+                        if (!mounted) return;
+                        if (error == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Kode OTP baru telah dikirim!')),
+                          );
+                        } else {
+                          setModalState(() => localError = error);
+                        }
+                      },
+                      child: const Text('Kirim Ulang Kode OTP',
+                        style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                ],
+              ),
+            );
+          }
+        );
+      },
+    );
+  }
+
+  void _toggleOtpLogin(bool value) async {
+    if (value) {
+      // Jika ingin menghidupkan, kita verifikasi OTP dulu
+      _showOtpVerificationDialog();
+    } else {
+      // Jika mematikan, langsung saja
+      final prefs = await SharedPreferences.getInstance();
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      await prefs.setBool('is_otp_login_enabled_$uid', false);
+      setState(() {
+        _isOtpLoginEnabled = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login dengan OTP telah dinonaktifkan.')),
+        );
+      }
     }
   }
 
@@ -136,9 +300,30 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
               ),
             ),
-            const SizedBox(height: 30),
-            ElevatedButton.icon(
-              onPressed: () => _logout(context),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: _isOtpLoginEnabled == null
+                      ? const ListTile(
+                          leading: Icon(Icons.security, color: Colors.grey, size: 32),
+                          title: Text('Memuat pengaturan...', style: TextStyle(color: Colors.grey)),
+                          trailing: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+                        )
+                      : SwitchListTile(
+                          title: const Text('Login dengan OTP (2FA)', style: TextStyle(fontWeight: FontWeight.bold)),
+                          subtitle: const Text('Kode OTP wajib dimasukkan saat masuk'),
+                          value: _isOtpLoginEnabled!,
+                          onChanged: _toggleOtpLogin,
+                          secondary: const Icon(Icons.security, color: AppColors.primaryColor, size: 32),
+                          activeColor: AppColors.primaryColor,
+                        ),
+                ),
+              ),
+              const SizedBox(height: 30),
+              ElevatedButton.icon(
+                onPressed: () => _logout(context),
               icon: const Icon(Icons.logout, color: Colors.white),
               label: const Text('Keluar (Logout)', style: TextStyle(color: Colors.white)),
               style: ElevatedButton.styleFrom(
