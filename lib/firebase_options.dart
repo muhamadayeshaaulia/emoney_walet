@@ -18,20 +18,21 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyCurlZkPJHmEhfAHXGEYBZt6DZLsWFqRLs', // Web API key might differ, but we put Android's for now
-    appId: '1:597810091743:web:dummy',
+    apiKey: 'AIzaSyDBBesTejBkImWY0TfR5r3g1VYERT3RPMc',
+    appId: '1:597810091743:web:34d383d9cc0702dcab3b6a',
     messagingSenderId: '597810091743',
     projectId: 'e-money-eceef',
     authDomain: 'e-money-eceef.firebaseapp.com',
     storageBucket: 'e-money-eceef.firebasestorage.app',
-    measurementId: 'G-DUMMY',
+    measurementId: 'G-9DZYJTQDM6',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyCurlZkPJHmEhfAHXGEYBZt6DZLsWFqRLs',
-    appId: '1:597810091743:android:936cf58bfa68e228ab3b6a',
+    appId: '1:597810091743:android:79a533fbbb8fd3bdab3b6a',
     messagingSenderId: '597810091743',
     projectId: 'e-money-eceef',
     storageBucket: 'e-money-eceef.firebasestorage.app',
   );
+
 }

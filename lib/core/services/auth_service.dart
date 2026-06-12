@@ -9,51 +9,46 @@ import 'package:google_sign_in/google_sign_in.dart';
 class AuthService {
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
 
-  static Future<bool> login(String email, String password) async {
+  static Future<String?> login(String email, String password) async {
     try {
-      // 1. Login Firebase
       UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      // 2. Ambil Firebase Token
       String? firebaseToken = await userCredential.user?.getIdToken();
-      if (firebaseToken == null) return false;
+      if (firebaseToken == null) return "Gagal mendapatkan token Firebase";
 
-      // 3. Tukar dengan JWT Golang
+      // Gunakan endpoint register untuk MENGIRIM OTP
       final response = await DioClient.instance.post(
-        ApiConstants.verifyToken,
+        ApiConstants.register,
         data: {'firebase_token': firebaseToken},
       );
 
       if (response.statusCode == 200 && response.data['success'] == true) {
-        // 4. Simpan JWT Token di Secure Storage
         String jwtToken = response.data['data']['access_token'];
         String userName = response.data['data']['user']['name'] ?? 'Pengguna E-Money';
         await _storage.write(key: 'auth_token', value: jwtToken);
         await _storage.write(key: 'user_name', value: userName);
         
-        // Simpan email & password untuk keperluan Fingerprint Login nantinya
         await _storage.write(key: 'saved_email', value: email);
         await _storage.write(key: 'saved_password', value: password);
-        return true;
+        return "OTP_REQUIRED";
       }
-      return false;
+      return "Login gagal: ${response.data}";
     } catch (e) {
       debugPrint('Login Error: $e');
-      return false;
+      return "Terjadi kesalahan saat login";
     }
   }
 
   static Future<String?> loginWithGoogle() async {
     try {
-      // Pass the Web Client ID directly to avoid cached values from the old project
+      // Harus menggunakan serverClientId untuk Google Auth Firebase
       final GoogleSignInAccount? googleUser = await GoogleSignIn(
         serverClientId: '597810091743-i8evv5etr1qeusnmgrm0o66m41ies577.apps.googleusercontent.com',
       ).signIn();
       if (googleUser == null) return "Dibatalkan oleh user";
-
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
       final AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
@@ -67,9 +62,9 @@ class AuthService {
       String? firebaseToken = await userCredential.user?.getIdToken();
       if (firebaseToken == null) return "Gagal mendapatkan token Firebase";
 
-      // 3. Tukar dengan JWT Golang
+      // 3. Tukar dengan JWT Golang & Kirim OTP
       final response = await DioClient.instance.post(
-        ApiConstants.verifyToken,
+        ApiConstants.register,
         data: {'firebase_token': firebaseToken},
       );
 
@@ -79,7 +74,7 @@ class AuthService {
         String userName = response.data['data']['user']['name'] ?? 'Pengguna E-Money';
         await _storage.write(key: 'auth_token', value: jwtToken);
         await _storage.write(key: 'user_name', value: userName);
-        return null; // Berhasil, tidak ada error
+        return "OTP_REQUIRED"; 
       }
       return "Gagal login di backend: ${response.data}";
     } catch (e) {
@@ -109,6 +104,7 @@ class AuthService {
 
   static Future<void> logout() async {
     await FirebaseAuth.instance.signOut();
+    await GoogleSignIn().signOut(); // Supaya bisa pilih akun Google lain saat login lagi
     await _storage.delete(key: 'auth_token');
     // saved_email dan saved_password TIDAK dihapus agar fingerprint tetap bisa dipakai
   }
@@ -136,7 +132,6 @@ class AuthService {
         String userName = response.data['data']['user']['name'] ?? 'Pengguna E-Money';
         await _storage.write(key: 'auth_token', value: jwtToken);
         await _storage.write(key: 'user_name', value: userName);
-        
         await _storage.write(key: 'saved_email', value: email);
         await _storage.write(key: 'saved_password', value: password);
         return null; // Berhasil

@@ -43,10 +43,12 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     setState(() => _isLoading = true);
-    bool success = await AuthService.login(_emailController.text, _passwordController.text);
+    String? errorMessage = await AuthService.login(_emailController.text, _passwordController.text);
     setState(() => _isLoading = false);
 
-    if (success) {
+    if (errorMessage == "OTP_REQUIRED") {
+      _showOtpDialog();
+    } else if (errorMessage == null) {
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
@@ -55,7 +57,7 @@ class _LoginPageState extends State<LoginPage> {
     } else {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login gagal. Periksa kembali email dan password Anda.')),
+        SnackBar(content: Text(errorMessage)),
       );
     }
   }
@@ -65,7 +67,9 @@ class _LoginPageState extends State<LoginPage> {
     String? errorMessage = await AuthService.loginWithGoogle();
     setState(() => _isLoading = false);
 
-    if (errorMessage == null) {
+    if (errorMessage == "OTP_REQUIRED") {
+      _showOtpDialog();
+    } else if (errorMessage == null) {
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
@@ -85,11 +89,13 @@ class _LoginPageState extends State<LoginPage> {
       setState(() => _isLoading = true);
       String? email = await AuthService.getSavedEmail();
       String? password = await AuthService.getSavedPassword();
-      
       if (email != null && password != null) {
-        bool success = await AuthService.login(email, password);
+        String? errorMessage = await AuthService.login(email, password);
         setState(() => _isLoading = false);
-        if (success) {
+        if (errorMessage == "OTP_REQUIRED") {
+          _showOtpDialog();
+          return;
+        } else if (errorMessage == null) {
           if (!mounted) return;
           Navigator.pushReplacement(
             context,
@@ -104,6 +110,79 @@ class _LoginPageState extends State<LoginPage> {
         const SnackBar(content: Text('Sesi Sidik Jari kadaluarsa. Silakan login manual.')),
       );
     }
+  }
+
+  void _showOtpDialog() {
+    final otpController = TextEditingController();
+    bool isVerifying = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+                left: 26, right: 26, top: 32,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Verifikasi Email (OTP)',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.ink)),
+                  const SizedBox(height: 12),
+                  const Text('Kami baru saja mengirimkan 6 digit kode OTP ke email Anda. Silakan masukkan kode tersebut untuk melanjutkan Login.',
+                    style: TextStyle(fontSize: 14, color: AppColors.slate500)),
+                  const SizedBox(height: 24),
+                  AppField(
+                    label: 'Kode OTP (6 digit)',
+                    value: otpController.text,
+                    onChanged: (v) => otpController.text = v,
+                    placeholder: '123456',
+                    keyboardType: TextInputType.number,
+                    maxLength: 6,
+                    prefixIcon: const Icon(Icons.security, size: 20),
+                  ),
+                  const SizedBox(height: 24),
+                  AppButton(
+                    label: 'VERIFIKASI',
+                    isLoading: isVerifying,
+                    onPressed: () async {
+                      if (otpController.text.isEmpty) return;
+                      setModalState(() => isVerifying = true);
+                      bool success = await AuthService.verifyEmailOtp(otpController.text);
+                      setModalState(() => isVerifying = false);
+
+                      if (success) {
+                        if (!mounted) return;
+                        Navigator.pop(context); // tutup bottom sheet
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => const MainNavigation()),
+                        );
+                      } else {
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Kode OTP salah atau sudah kadaluarsa!')),
+                        );
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 32),
+                ],
+              ),
+            );
+          }
+        );
+      },
+    );
   }
 
   @override

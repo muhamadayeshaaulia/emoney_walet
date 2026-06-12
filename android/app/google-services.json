@@ -14,13 +14,42 @@
       },
       "oauth_client": [
         {
-          "client_id": "597810091743-oepsn7j44lpbejrfmdledd6vpn00t3vg.apps.googleusercontent.com",
+          "client_id": "597810091743-b4d2p08kuccbjrhhek62160ibjnsh1q4.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.emoney.service",
-            "certificate_hash": "50b557e72bdf86345d20ab9e90caaa2d2d84ff98"
+            "certificate_hash": "662c3663588851ddbe4ec4d33ce4bee09e659c6d"
           }
         },
+        {
+          "client_id": "597810091743-i8evv5etr1qeusnmgrm0o66m41ies577.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCurlZkPJHmEhfAHXGEYBZt6DZLsWFqRLs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "597810091743-i8evv5etr1qeusnmgrm0o66m41ies577.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:597810091743:android:79a533fbbb8fd3bdab3b6a",
+        "android_client_info": {
+          "package_name": "com.example.emoney_walet"
+        }
+      },
+      "oauth_client": [
         {
           "client_id": "597810091743-i8evv5etr1qeusnmgrm0o66m41ies577.apps.googleusercontent.com",
           "client_type": 3
