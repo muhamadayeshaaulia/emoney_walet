@@ -14,12 +14,17 @@ class BalanceResponseModel {
   });
 
   factory BalanceResponseModel.fromJson(Map<String, dynamic> json) {
+    // Menyesuaikan dengan format be-emoney:
+    // { "success": true, "data": { "balance": 10000 } }
+    // atau jika topup: { "success": true, "data": { "balance": ..., "amount": ... } }
+    final data = json['data'] ?? json; // Fallback jika tidak ada 'data'
+    
     return BalanceResponseModel(
-      balance: (json['balance'] as num?)?.toDouble() ?? 0.0,
+      balance: (data['balance'] as num?)?.toDouble() ?? 0.0,
       message: json['message'] as String?,
-      invoiceId: json['invoice_id'] as String?,
-      amount: (json['amount'] as num?)?.toDouble(),
-      date: json['date'] as String?,
+      invoiceId: data['invoice_id'] as String?,
+      amount: (data['amount'] as num?)?.toDouble(),
+      date: data['created_at'] as String? ?? json['date'] as String?,
     );
   }
 }

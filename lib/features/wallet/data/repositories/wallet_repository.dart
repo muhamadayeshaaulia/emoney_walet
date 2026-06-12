@@ -47,7 +47,7 @@ class WalletRepository {
   }
 
   // Fungsi Pay Transaction
-  Future<PaymentResponseModel?> payTransaction(String invoiceId, String token) async {
+  Future<PaymentResponseModel?> payTransaction(double amount, String description, String otpCode, String otpType, String token) async {
     final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.pay}');
     try {
       final response = await http.post(
@@ -57,7 +57,10 @@ class WalletRepository {
           'Authorization': 'Bearer $token',
         },
         body: jsonEncode({
-          'invoice_id': invoiceId,
+          'amount': amount,
+          'description': description,
+          'otp_code': otpCode,
+          'otp_type': otpType,
         }),
       );
 

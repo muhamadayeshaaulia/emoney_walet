@@ -138,11 +138,11 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: const Text('Masukkan PIN 2FA'),
+        title: const Text('Masukkan OTP / PIN 2FA'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Masukkan PIN 6 angka Anda untuk menyetujui pembayaran ini. (Gunakan 123456)'),
+            const Text('Masukkan OTP (TOTP/Email) Anda untuk menyetujui transfer/pembayaran ini.'),
             const SizedBox(height: 16),
             TextField(
               controller: pinController,
@@ -163,12 +163,13 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
           ),
           ElevatedButton(
             onPressed: () {
-              if (pinController.text == '123456') {
+              final pin = pinController.text;
+              if (pin.length >= 4) {
                 Navigator.pop(context); // Tutup dialog
-                _processPayment();
+                _processPayment(pin);
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('PIN Salah! Silakan coba lagi.')),
+                  const SnackBar(content: Text('OTP tidak valid! Minimal 4 digit.')),
                 );
               }
             },
@@ -179,12 +180,19 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
     );
   }
 
-  Future<void> _processPayment() async {
+  Future<void> _processPayment(String otpCode) async {
     setState(() => _isLoading = true);
 
     try {
       final repository = WalletRepository();
-      final responseModel = await repository.payTransaction(widget.invoiceId, widget.token);
+      // Saat ini kita hardcode 'totp' sebagai otp_type
+      final responseModel = await repository.payTransaction(
+        widget.amount,
+        'Pembayaran Tagihan ${widget.invoiceId}',
+        otpCode,
+        'totp',
+        widget.token
+      );
 
       if (responseModel != null) {
         if (!mounted) return;

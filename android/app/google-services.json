@@ -1,78 +1,41 @@
 {
   "project_info": {
-    "project_number": "356293982231",
-    "project_id": "projectlanjutan-7cdac",
-    "storage_bucket": "projectlanjutan-7cdac.firebasestorage.app"
+    "project_number": "597810091743",
+    "project_id": "e-money-eceef",
+    "storage_bucket": "e-money-eceef.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:356293982231:android:3e4804f8824f06cf73c452",
+        "mobilesdk_app_id": "1:597810091743:android:936cf58bfa68e228ab3b6a",
         "android_client_info": {
-          "package_name": "com.example.emoney_walet"
+          "package_name": "com.emoney.service"
         }
       },
       "oauth_client": [
         {
-          "client_id": "356293982231-4hrgh7td4glm6nkfllc8nrls3c9gn26n.apps.googleusercontent.com",
+          "client_id": "597810091743-oepsn7j44lpbejrfmdledd6vpn00t3vg.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.example.emoney_walet",
+            "package_name": "com.emoney.service",
             "certificate_hash": "50b557e72bdf86345d20ab9e90caaa2d2d84ff98"
           }
         },
         {
-          "client_id": "356293982231-bf9q8gaotr692tane9l4cd17od6fot1q.apps.googleusercontent.com",
+          "client_id": "597810091743-i8evv5etr1qeusnmgrm0o66m41ies577.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyD5vF4nLEbktOme_LdYsMfuSeLvAEhW5Rk"
+          "current_key": "AIzaSyCurlZkPJHmEhfAHXGEYBZt6DZLsWFqRLs"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "356293982231-bf9q8gaotr692tane9l4cd17od6fot1q.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:356293982231:android:16ff0cba671b1ced73c452",
-        "android_client_info": {
-          "package_name": "com.example.uts_1123150188_sesester6"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "356293982231-uaievhdjtk79cmabskjmvlc6flfor9o6.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.example.uts_1123150188_sesester6",
-            "certificate_hash": "50b557e72bdf86345d20ab9e90caaa2d2d84ff98"
-          }
-        },
-        {
-          "client_id": "356293982231-bf9q8gaotr692tane9l4cd17od6fot1q.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyD5vF4nLEbktOme_LdYsMfuSeLvAEhW5Rk"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "356293982231-bf9q8gaotr692tane9l4cd17od6fot1q.apps.googleusercontent.com",
+              "client_id": "597810091743-i8evv5etr1qeusnmgrm0o66m41ies577.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
