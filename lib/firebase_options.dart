@@ -18,20 +18,20 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyAO83rJb5F_ginjTktQO-wxhcHLtNZYXLM',
-    appId: '1:356293982231:web:557bceaa0728cf0e73c452',
-    messagingSenderId: '356293982231',
-    projectId: 'projectlanjutan-7cdac',
-    authDomain: 'projectlanjutan-7cdac.firebaseapp.com',
-    storageBucket: 'projectlanjutan-7cdac.firebasestorage.app',
-    measurementId: 'G-E2JTXL8J57',
+    apiKey: 'AIzaSyCurlZkPJHmEhfAHXGEYBZt6DZLsWFqRLs', // Web API key might differ, but we put Android's for now
+    appId: '1:597810091743:web:dummy', 
+    messagingSenderId: '597810091743',
+    projectId: 'e-money-eceef',
+    authDomain: 'e-money-eceef.firebaseapp.com',
+    storageBucket: 'e-money-eceef.firebasestorage.app',
+    measurementId: 'G-DUMMY',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyD5vF4nLEbktOme_LdYsMfuSeLvAEhW5Rk',
-    appId: '1:356293982231:android:16ff0cba671b1ced73c452',
-    messagingSenderId: '356293982231',
-    projectId: 'projectlanjutan-7cdac',
-    storageBucket: 'projectlanjutan-7cdac.firebasestorage.app',
+    apiKey: 'AIzaSyCurlZkPJHmEhfAHXGEYBZt6DZLsWFqRLs',
+    appId: '1:597810091743:android:936cf58bfa68e228ab3b6a',
+    messagingSenderId: '597810091743',
+    projectId: 'e-money-eceef',
+    storageBucket: 'e-money-eceef.firebasestorage.app',
   );
 }

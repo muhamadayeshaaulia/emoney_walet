@@ -46,10 +46,10 @@ class AuthService {
     }
   }
 
-  static Future<bool> loginWithGoogle() async {
+  static Future<String?> loginWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) return false; // Dibatalkan oleh user
+      if (googleUser == null) return "Dibatalkan oleh user";
 
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
       final AuthCredential credential = GoogleAuthProvider.credential(
@@ -62,7 +62,7 @@ class AuthService {
 
       // 2. Ambil Firebase Token
       String? firebaseToken = await userCredential.user?.getIdToken();
-      if (firebaseToken == null) return false;
+      if (firebaseToken == null) return "Gagal mendapatkan token Firebase";
 
       // 3. Tukar dengan JWT Golang
       final response = await DioClient.instance.post(
@@ -76,12 +76,15 @@ class AuthService {
         String userName = response.data['data']['user']['name'] ?? 'Pengguna E-Money';
         await _storage.write(key: 'auth_token', value: jwtToken);
         await _storage.write(key: 'user_name', value: userName);
-        return true;
+        return null; // Berhasil, tidak ada error
       }
-      return false;
+      return "Gagal login di backend: ${response.data}";
     } catch (e) {
       debugPrint('Google Login Error: $e');
-      return false;
+      if (e is DioException) {
+        return "Network Error: ${e.message} - ${e.response?.data}";
+      }
+      return "Google Login Error: $e";
     }
   }
 

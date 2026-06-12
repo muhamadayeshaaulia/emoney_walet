@@ -95,17 +95,17 @@ class _LoginPageState extends State<LoginPage> {
 
   void _loginWithGoogle() async {
     setState(() => _isLoading = true);
-    bool success = await AuthService.loginWithGoogle();
+    String? errorMessage = await AuthService.loginWithGoogle();
     setState(() => _isLoading = false);
 
-    if (success) {
+    if (errorMessage == null) {
       if (mounted) {
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainNavigation()));
       }
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login Google dibatalkan atau gagal.')),
+          SnackBar(content: Text(errorMessage)),
         );
       }
     }
