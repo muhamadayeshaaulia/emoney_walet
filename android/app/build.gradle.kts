@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "com.emoney.service"
+    namespace = "com.example.emoney_walet"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
