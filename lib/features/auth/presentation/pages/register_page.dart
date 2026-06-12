@@ -105,12 +105,6 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bg,
-      appBar: AppBar(
-        title: const Text('Daftar Akun Baru', style: TextStyle(color: AppColors.ink)),
-        backgroundColor: AppColors.bg,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.ink),
-      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(26, 20, 26, 24),
@@ -195,6 +189,25 @@ class _RegisterPageState extends State<RegisterPage> {
                   label: 'DAFTAR SEKARANG',
                   onPressed: _register,
                   isLoading: _isLoading,
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Sudah punya akun? ',
+                        style: TextStyle(fontSize: 14, color: AppColors.slate500)),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Masuk di sini',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                          )),
+                    ),
+                  ],
                 ),
               ] else ...[
                 const Text('Verifikasi Email (SMTP 2FA)',
