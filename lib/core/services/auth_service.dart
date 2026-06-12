@@ -89,18 +89,17 @@ class AuthService {
       String? firebaseToken = await userCredential.user?.getIdToken();
       if (firebaseToken == null) return "Gagal mendapatkan token Firebase";
 
-      // Cek preferensi OTP lokal
+      // Cek preferensi OTP & Fingerprint lokal
       final prefs = await SharedPreferences.getInstance();
       bool isOtpEnabled =
           prefs.getBool('is_otp_login_enabled_${userCredential.user?.uid}') ??
           false;
+      bool isFingerprintEnabled =
+          prefs.getBool('is_fingerprint_enabled') ?? false;
 
-      // 3. Tukar dengan JWT Golang
-      String endpoint = isOtpEnabled
-          ? ApiConstants.register
-          : ApiConstants.verifyToken;
+      // 3. Selalu tukar dengan JWT pakai verifyToken dulu (tidak kirim OTP di sini)
       final response = await DioClient.instance.post(
-        endpoint,
+        ApiConstants.verifyToken,
         data: {'firebase_token': firebaseToken},
       );
 
@@ -115,7 +114,12 @@ class AuthService {
         // agar fitur Quick Login (Sidik Jari/OTP) tetap menjadi hak milik akun
         // terakhir yang login menggunakan Email & Password secara manual.
 
-        return isOtpEnabled ? "OTP_REQUIRED" : null;
+        // Return status verifikasi yang dibutuhkan (OTP dikirim nanti jika user memilih OTP)
+        if (isOtpEnabled && isFingerprintEnabled) return "VERIFY_BOTH";
+        if (isOtpEnabled) return "VERIFY_OTP";
+        if (isFingerprintEnabled) return "VERIFY_FINGERPRINT";
+        
+        return null;
       }
       return "Gagal login di backend: ${response.data['message'] ?? response.data}";
     } catch (e) {

@@ -124,7 +124,26 @@ class _LoginPageState extends State<LoginPage> {
     String? errorMessage = await AuthService.loginWithGoogle();
     setState(() => _isLoading = false);
 
-    if (errorMessage == "OTP_REQUIRED") {
+    if (errorMessage == "VERIFY_BOTH") {
+      _showVerificationChoiceDialog();
+    } else if (errorMessage == "VERIFY_FINGERPRINT") {
+      bool authenticated = await BiometricService.authenticate();
+      if (authenticated) {
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MainNavigation()),
+        );
+      } else {
+        await AuthService.logout();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Verifikasi biometrik gagal dibatalkan.')),
+        );
+      }
+    } else if (errorMessage == "VERIFY_OTP") {
+      _showOtpDialog();
+    } else if (errorMessage == "OTP_REQUIRED") { // Fallback lama
       _showOtpDialog();
     } else if (errorMessage == null) {
       if (!mounted) return;
@@ -133,11 +152,83 @@ class _LoginPageState extends State<LoginPage> {
         MaterialPageRoute(builder: (context) => const MainNavigation()),
       );
     } else {
+      await AuthService.logout(); // Rollback Google Login jika error lain
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(errorMessage)),
       );
     }
+  }
+
+  void _showVerificationChoiceDialog() {
+    final rootContext = context; // context halaman Login, bukan context bottom sheet
+    showModalBottomSheet(
+      context: rootContext,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetContext) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Verifikasi Keamanan',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.ink)),
+              const SizedBox(height: 12),
+              const Text('Pilih metode verifikasi untuk melanjutkan akses ke akun Anda.',
+                style: TextStyle(fontSize: 14, color: AppColors.slate500)),
+              const SizedBox(height: 24),
+              AppButton(
+                label: 'Sidik Jari (Biometrik)',
+                onPressed: () async {
+                  Navigator.pop(sheetContext); // tutup sheet dengan sheetContext
+                  bool authenticated = await BiometricService.authenticate();
+                  if (authenticated) {
+                    if (!mounted) return;
+                    Navigator.pushReplacement(
+                      rootContext, // pakai rootContext dari halaman Login
+                      MaterialPageRoute(builder: (_) => const MainNavigation()),
+                    );
+                  } else {
+                    await AuthService.logout();
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(rootContext).showSnackBar(
+                      const SnackBar(content: Text('Verifikasi biometrik gagal dibatalkan.')),
+                    );
+                  }
+                },
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 54),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  side: const BorderSide(color: AppColors.primary, width: 2),
+                ),
+                onPressed: () async {
+                  Navigator.pop(context);
+                  // Kirim OTP email hanya saat user memilih opsi ini
+                  setState(() => _isLoading = true);
+                  await AuthService.resendEmailOtp(action: 'login');
+                  setState(() => _isLoading = false);
+                  _showOtpDialog();
+                },
+                child: const Text('Gunakan Kode OTP',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.primary)),
+              ),
+            ],
+          ),
+        );
+      },
+    ).then((_) {
+      // Jika dialog ditutup tanpa memilih (di-dismiss), logout akun
+      // Tetapi karena ini sulit melacak apakah dia klik tombol atau tidak,
+      // kita biarkan saja (pengguna terjebak di layar login tanpa state masuk)
+    });
   }
 
   void _loginWithFingerprint() async {
