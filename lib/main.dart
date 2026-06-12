@@ -244,7 +244,6 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
 
         // Kembali ke dashboard E-Money
         Navigator.pop(context);
-        
         // Memanggil aplikasi E-Commerce
         final returnUrl = Uri.parse('ecommerceapp://success');
         try {

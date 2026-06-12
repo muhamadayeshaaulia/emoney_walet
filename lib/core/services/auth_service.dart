@@ -112,4 +112,62 @@ class AuthService {
     await _storage.delete(key: 'auth_token');
     // saved_email dan saved_password TIDAK dihapus agar fingerprint tetap bisa dipakai
   }
+
+  static Future<String?> register(String email, String password) async {
+    try {
+      // 1. Buat akun di Firebase
+      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      // 2. Ambil Firebase Token
+      String? firebaseToken = await userCredential.user?.getIdToken();
+      if (firebaseToken == null) return "Gagal mendapatkan token Firebase";
+
+      // 3. Register ke backend Golang (akan mengirim SMTP OTP)
+      final response = await DioClient.instance.post(
+        ApiConstants.register,
+        data: {'firebase_token': firebaseToken},
+      );
+
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        String jwtToken = response.data['data']['access_token'];
+        String userName = response.data['data']['user']['name'] ?? 'Pengguna E-Money';
+        await _storage.write(key: 'auth_token', value: jwtToken);
+        await _storage.write(key: 'user_name', value: userName);
+        
+        await _storage.write(key: 'saved_email', value: email);
+        await _storage.write(key: 'saved_password', value: password);
+        return null; // Berhasil
+      }
+      return "Gagal mendaftar di backend: ${response.data['message']}";
+    } catch (e) {
+      debugPrint('Register Error: $e');
+      if (e is DioException) {
+        return "Network Error: ${e.message} - ${e.response?.data}";
+      } else if (e is FirebaseAuthException) {
+        return "Firebase Error: ${e.message}";
+      }
+      return "Register Error: $e";
+    }
+  }
+
+  static Future<bool> verifyEmailOtp(String code) async {
+    try {
+      String? token = await getToken();
+      if (token == null) return false;
+
+      final response = await DioClient.instance.post(
+        ApiConstants.verifyEmailOtp,
+        data: {'code': code},
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      return response.statusCode == 200 && response.data['success'] == true;
+    } catch (e) {
+      debugPrint('Verify Email OTP Error: $e');
+      return false;
+    }
+  }
 }
