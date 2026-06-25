@@ -97,31 +97,48 @@ class AuthService {
       bool isFingerprintEnabled =
           prefs.getBool('is_fingerprint_enabled') ?? false;
 
-      // 3. Selalu tukar dengan JWT pakai verifyToken dulu (tidak kirim OTP di sini)
-      final response = await DioClient.instance.post(
-        ApiConstants.verifyToken,
-        data: {'firebase_token': firebaseToken},
-      );
+      // 3. Deteksi user baru vs lama dari Firebase langsung (paling akurat!)
+      final bool isNewUser = userCredential.additionalUserInfo?.isNewUser ?? false;
 
-      if (response.statusCode == 200 && response.data['success'] == true) {
-        // 4. Simpan JWT Token di Secure Storage
-        String jwtToken = response.data['data']['access_token'];
-        String userName =
-            response.data['data']['user']['name'] ?? 'Pengguna E-Money';
-        await _storage.write(key: 'auth_token', value: jwtToken);
-        await _storage.write(key: 'user_name', value: userName);
-        // Kita TIDAK menyimpan saved_uid, saved_email, dan saved_password di sini
-        // agar fitur Quick Login (Sidik Jari/OTP) tetap menjadi hak milik akun
-        // terakhir yang login menggunakan Email & Password secara manual.
+      if (isNewUser) {
+        // USER BARU → Daftarkan ke backend → backend kirim OTP → wajib verifikasi
+        final registerResponse = await DioClient.instance.post(
+          ApiConstants.register,
+          data: {'firebase_token': firebaseToken},
+        );
 
-        // Return status verifikasi yang dibutuhkan (OTP dikirim nanti jika user memilih OTP)
-        if (isOtpEnabled && isFingerprintEnabled) return "VERIFY_BOTH";
-        if (isOtpEnabled) return "VERIFY_OTP";
-        if (isFingerprintEnabled) return "VERIFY_FINGERPRINT";
-        
-        return null;
+        if (registerResponse.statusCode == 200 && registerResponse.data['success'] == true) {
+          String jwtToken = registerResponse.data['data']['access_token'];
+          String userName =
+              registerResponse.data['data']['user']['name'] ?? 'Pengguna E-Money';
+          await _storage.write(key: 'auth_token', value: jwtToken);
+          await _storage.write(key: 'user_name', value: userName);
+          // Akun baru WAJIB verifikasi OTP, tidak ada pilihan sidik jari
+          return "OTP_REQUIRED";
+        }
+        return "Gagal mendaftarkan akun baru: ${registerResponse.data['message'] ?? registerResponse.data}";
+      } else {
+        // USER LAMA → Login langsung ke backend dengan verifyToken
+        final response = await DioClient.instance.post(
+          ApiConstants.verifyToken,
+          data: {'firebase_token': firebaseToken},
+        );
+
+        if (response.statusCode == 200 && response.data['success'] == true) {
+          String jwtToken = response.data['data']['access_token'];
+          String userName =
+              response.data['data']['user']['name'] ?? 'Pengguna E-Money';
+          await _storage.write(key: 'auth_token', value: jwtToken);
+          await _storage.write(key: 'user_name', value: userName);
+
+          // Cek settingan verifikasi profil user lama
+          if (isOtpEnabled && isFingerprintEnabled) return "VERIFY_BOTH";
+          if (isOtpEnabled) return "VERIFY_OTP";
+          if (isFingerprintEnabled) return "VERIFY_FINGERPRINT";
+          return null;
+        }
+        return "Gagal login di backend: ${response.data['message'] ?? response.data}";
       }
-      return "Gagal login di backend: ${response.data['message'] ?? response.data}";
     } catch (e) {
       debugPrint('Google Login Error: $e');
       if (e is DioException) {
