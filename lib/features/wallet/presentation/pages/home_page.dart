@@ -24,6 +24,39 @@ class _HomePageState extends State<HomePage> {
   String _userName = 'Pengguna E-Money';
   final WalletRepository _repository = WalletRepository();
 
+  final List<Map<String, dynamic>> _menuItems = [
+    {
+      'title': 'Transfer',
+      'icon': Icons.send_rounded,
+      'color': Colors.blue,
+    },
+    {
+      'title': 'Isi Pulsa',
+      'icon': Icons.phone_android_rounded,
+      'color': Colors.orange,
+    },
+    {
+      'title': 'E-Wallet',
+      'icon': Icons.account_balance_wallet_rounded,
+      'color': Colors.purple,
+    },
+    {
+      'title': 'Bayar BPJS',
+      'icon': Icons.medical_services_rounded,
+      'color': Colors.teal,
+    },
+    {
+      'title': 'Bayar Listrik',
+      'icon': Icons.bolt_rounded,
+      'color': Colors.amber,
+    },
+    {
+      'title': 'Pulsa Paket',
+      'icon': Icons.language_rounded,
+      'color': Colors.indigo,
+    },
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -98,10 +131,84 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void _showDummyFeatureDialog(String featureName) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Icon(
+                Icons.construction_rounded,
+                size: 64,
+                color: AppColors.primaryColor,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Fitur $featureName Segera Hadir!',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.ink,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Layanan $featureName sedang dalam tahap pengembangan untuk memberikan pengalaman transaksi terbaik bagi Anda. Nantikan pembaruan berikutnya!',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: AppColors.slate500,
+                  fontSize: 14,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Mengerti',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final double headerHeight = 210.0;
-    final double cardOffset = 135.0; // Posisi card saldo melayang
+    final double headerHeight = 270.0;
+    final double cardOffset = 200.0; // Posisi card saldo melayang (memberi lebih banyak ruang bagi salam)
 
     Widget topHeader = Stack(
       clipBehavior: Clip.none,
@@ -159,7 +266,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   // Greeting & Username Row
                   Text(
                     '${_getGreeting()},',
@@ -168,7 +275,7 @@ class _HomePageState extends State<HomePage> {
                       fontSize: 14,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Text(
                     _userName,
                     maxLines: 1,
@@ -250,7 +357,7 @@ class _HomePageState extends State<HomePage> {
                 child: Column(
                   children: [
                     topHeader,
-                    const SizedBox(height: 48), // Ruang agar content di bawah tidak tertutup card melayang
+                    const SizedBox(height: 60), // Ruang agar content di bawah tidak tertutup card melayang
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24.0),
                       child: Column(
@@ -318,7 +425,70 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 60),
+                          const SizedBox(height: 32),
+                          // Layanan Menu Grid
+                          const Text(
+                            'Layanan Utama',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.ink,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3, // 3 kolom menu
+                              mainAxisSpacing: 16,
+                              crossAxisSpacing: 16,
+                              childAspectRatio: 1.1,
+                            ),
+                            itemCount: _menuItems.length,
+                            itemBuilder: (context, index) {
+                              final item = _menuItems[index];
+                              return InkWell(
+                                onTap: () => _showDummyFeatureDialog(item['title']),
+                                borderRadius: BorderRadius.circular(16),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(color: AppColors.line),
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: item['color'].withOpacity(0.1),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(
+                                          item['icon'],
+                                          color: item['color'],
+                                          size: 24,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        item['title'],
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.ink,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 40),
                           // Waiting Section
                           Center(
                             child: Container(
