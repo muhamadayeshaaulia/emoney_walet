@@ -158,10 +158,32 @@ class _DisconnectAppPageState extends State<DisconnectAppPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      appBar: AppBar(
-        title: const Text('Putuskan Aplikasi', style: TextStyle(fontWeight: FontWeight.bold)),
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (didPop) return;
+        Navigator.pop(context);
+        try {
+          await launchUrl(Uri.parse('ecommerceapp://cancel'), mode: LaunchMode.externalApplication);
+        } catch (e) {
+          debugPrint('Gagal membuka E-Commerce: $e');
+        }
+      },
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () async {
+              Navigator.pop(context);
+              try {
+                await launchUrl(Uri.parse('ecommerceapp://cancel'), mode: LaunchMode.externalApplication);
+              } catch (e) {
+                debugPrint('Gagal membuka E-Commerce: $e');
+              }
+            },
+          ),
+          title: const Text('Putuskan Aplikasi', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
         flexibleSpace: Container(
@@ -205,13 +227,20 @@ class _DisconnectAppPageState extends State<DisconnectAppPage> {
               const SizedBox(height: 16),
               if (!_isLoading)
                 TextButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    try {
+                      await launchUrl(Uri.parse('ecommerceapp://cancel'), mode: LaunchMode.externalApplication);
+                    } catch (e) {
+                      debugPrint('Gagal membuka E-Commerce: $e');
+                    }
+                  },
                   child: const Text('Batal', style: TextStyle(color: AppColors.slate500)),
                 )
             ],
           ),
         ),
       ),
-    );
+    ));
   }
 }
