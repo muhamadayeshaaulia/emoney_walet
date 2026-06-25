@@ -27,14 +27,17 @@ class WalletRepository {
   }
 
   // Fungsi Top Up
-  Future<BalanceResponseModel?> topUp(double amount) async {
+  Future<BalanceResponseModel?> topUp(double amount, {String? paymentMethod}) async {
     String? token = await AuthService.getToken();
     if (token == null) return null;
 
     try {
       final response = await DioClient.instance.post(
         ApiConstants.topUp,
-        data: {'amount': amount},
+        data: {
+          'amount': amount,
+          'payment_method': paymentMethod,
+        },
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
       if (response.statusCode == 200) {

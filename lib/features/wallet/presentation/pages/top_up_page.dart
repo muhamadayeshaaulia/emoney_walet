@@ -126,7 +126,8 @@ class _TopUpPageState extends State<TopUpPage> {
     setState(() => _isLoading = true);
 
     try {
-      final responseModel = await _repository.topUp(amount);
+      final selectedMethodName = _paymentMethods.firstWhere((e) => e['id'] == _selectedMethod)['name'];
+      final responseModel = await _repository.topUp(amount, paymentMethod: selectedMethodName);
       if (responseModel != null) {
         // Notifikasi
         const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
@@ -140,7 +141,6 @@ class _TopUpPageState extends State<TopUpPage> {
         const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
         
         String formattedAmount = CurrencyInputFormatter.formatNumber(amount.toInt());
-        final selectedMethodName = _paymentMethods.firstWhere((e) => e['id'] == _selectedMethod)['name'];
 
         await NotificationService.addNotification(
           'Top Up Berhasil! 💸', 

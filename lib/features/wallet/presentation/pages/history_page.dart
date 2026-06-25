@@ -30,7 +30,7 @@ class _HistoryPageState extends State<HistoryPage> {
 
     try {
       final response = await DioClient.instance.get(
-        '/transactions',
+        ApiConstants.transactions,
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
       if (response.statusCode == 200) {
@@ -62,9 +62,9 @@ class _HistoryPageState extends State<HistoryPage> {
                   itemCount: _transactions.length,
                   itemBuilder: (context, index) {
                     final tx = _transactions[index];
-                    final String invoiceId = tx['invoice_id'];
-                    final double amount = (tx['total_amount'] as num).toDouble();
-                    final String status = tx['status'];
+                    final String invoiceId = tx['invoice_id'] ?? 'N/A';
+                    final double amount = (tx['total_amount'] as num?)?.toDouble() ?? (tx['amount'] as num?)?.toDouble() ?? 0.0;
+                    final String status = tx['status'] ?? 'SUCCESS';
                     
                     bool isTopUp = invoiceId.startsWith('TOPUP');
                     
@@ -98,6 +98,7 @@ class _HistoryPageState extends State<HistoryPage> {
                                   'type': isTopUp ? 'topup' : 'pay',
                                   'amount': amount,
                                   'invoice_id': invoiceId,
+                                  'payment_method': tx['payment_method'] ?? '',
                                   'date': tx['created_at'] ?? '',
                                 },
                               ),
