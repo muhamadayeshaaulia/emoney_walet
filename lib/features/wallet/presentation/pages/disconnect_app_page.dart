@@ -5,17 +5,17 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/auth_service.dart';
 
-class ConnectAppPage extends StatefulWidget {
-  const ConnectAppPage({super.key});
+class DisconnectAppPage extends StatefulWidget {
+  const DisconnectAppPage({super.key});
 
   @override
-  State<ConnectAppPage> createState() => _ConnectAppPageState();
+  State<DisconnectAppPage> createState() => _DisconnectAppPageState();
 }
 
-class _ConnectAppPageState extends State<ConnectAppPage> {
+class _DisconnectAppPageState extends State<DisconnectAppPage> {
   bool _isLoading = false;
 
-  void _startConnectionFlow() async {
+  void _startDisconnectionFlow() async {
     // 1. PIN Verifikasi Dummy
     if (!mounted) return;
     final bool? isPinValid = await showDialog<bool>(
@@ -29,7 +29,7 @@ class _ConnectAppPageState extends State<ConnectAppPage> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Masukkan PIN E-Money Anda', style: TextStyle(fontSize: 13, color: AppColors.slate500)),
+              const Text('Masukkan PIN E-Money Anda untuk memutuskan hubungan', style: TextStyle(fontSize: 13, color: AppColors.slate500)),
               const SizedBox(height: 16),
               TextField(
                 controller: _pinController,
@@ -53,7 +53,7 @@ class _ConnectAppPageState extends State<ConnectAppPage> {
                   ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('PIN tidak valid')));
                 }
               },
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
               child: const Text('Lanjut', style: TextStyle(color: Colors.white)),
             ),
           ],
@@ -113,10 +113,10 @@ class _ConnectAppPageState extends State<ConnectAppPage> {
                       ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('Kode harus 6 digit')));
                     }
                   },
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
                   child: _isVerifying 
                       ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Text('Hubungkan', style: TextStyle(color: Colors.white)),
+                      : const Text('Konfirmasi', style: TextStyle(color: Colors.white)),
                 ),
               ],
             );
@@ -127,14 +127,14 @@ class _ConnectAppPageState extends State<ConnectAppPage> {
 
     if (isAuthValid == true && mounted) {
       setState(() => _isLoading = true);
-      // Simpan ke SharedPreferences
+      // Hapus dari SharedPreferences
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('is_ecommerce_connected', true);
+      await prefs.setBool('is_ecommerce_connected', false);
 
       // Simpan notifikasi
       await NotificationService.addNotification(
-        'Aplikasi Terhubung 🔗',
-        'E-Commerce 716 Production berhasil dihubungkan ke E-Money Wallet.',
+        'Koneksi Terputus 💔',
+        'Hubungan dengan E-Commerce 716 Production berhasil diputuskan.',
       );
 
       if (mounted) {
@@ -142,7 +142,7 @@ class _ConnectAppPageState extends State<ConnectAppPage> {
         Navigator.pop(context);
 
         // Kembali ke E-Commerce
-        final returnUrl = Uri.parse('ecommerceapp://connect_success');
+        final returnUrl = Uri.parse('ecommerceapp://disconnect_success');
         try {
           await launchUrl(returnUrl, mode: LaunchMode.externalApplication);
         } catch (e) {
@@ -156,12 +156,12 @@ class _ConnectAppPageState extends State<ConnectAppPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Hubungkan Aplikasi', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Putuskan Aplikasi', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
         flexibleSpace: Container(
           decoration: const BoxDecoration(
-            gradient: LinearGradient(colors: [AppColors.primaryColor, Color(0xFF193475)]),
+            gradient: LinearGradient(colors: [Colors.redAccent, Color(0xFF8B0000)]),
           ),
         ),
       ),
@@ -171,16 +171,16 @@ class _ConnectAppPageState extends State<ConnectAppPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.store_rounded, size: 80, color: Color(0xFFFF6B35)),
+            const Icon(Icons.link_off_rounded, size: 80, color: Colors.redAccent),
             const SizedBox(height: 20),
             const Text(
-              'Aplikasi E-Commerce 716 Production ingin terhubung dengan E-Money Wallet Anda.',
+              'Putuskan hubungan dengan E-Commerce 716 Production?',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             const Text(
-              'Ini akan mengizinkan aplikasi untuk melakukan pembayaran otomatis dan melihat riwayat transaksi.',
+              'Aplikasi ini tidak akan lagi dapat melihat saldo atau melakukan pembayaran secara otomatis dari E-Money Wallet Anda.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14, color: AppColors.slate500),
             ),
@@ -188,13 +188,13 @@ class _ConnectAppPageState extends State<ConnectAppPage> {
             _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : ElevatedButton(
-                    onPressed: _startConnectionFlow,
+                    onPressed: _startDisconnectionFlow,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryColor,
+                      backgroundColor: Colors.redAccent,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text('Setujui & Hubungkan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                    child: const Text('Putuskan Hubungan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                   ),
             const SizedBox(height: 16),
             if (!_isLoading)

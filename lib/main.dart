@@ -20,6 +20,7 @@ import 'core/services/biometric_service.dart';
 import 'core/services/auth_service.dart';
 import 'features/wallet/presentation/pages/payment_confirmation_page.dart';
 import 'features/wallet/presentation/pages/connect_app_page.dart';
+import 'features/wallet/presentation/pages/disconnect_app_page.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -75,6 +76,14 @@ class EMoneyApp extends StatefulWidget {
           navigatorKey.currentState!.push(
             MaterialPageRoute(
               builder: (context) => const ConnectAppPage(),
+            ),
+          );
+        }
+      } else if (uri.host == 'disconnect') {
+        if (navigatorKey.currentState != null) {
+          navigatorKey.currentState!.push(
+            MaterialPageRoute(
+              builder: (context) => const DisconnectAppPage(),
             ),
           );
         }
