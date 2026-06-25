@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/services/auth_service.dart';
 import '../../../../core/services/biometric_service.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -27,25 +28,31 @@ class _SplashPageState extends State<SplashPage> {
     if (!mounted) return;
 
     if (token != null) {
-      // Token ada, coba login pakai Sidik Jari / Face ID
-      bool isBiometricAvailable = await BiometricService.isBiometricAvailable();
-      if (isBiometricAvailable) {
-        bool authenticated = await BiometricService.authenticate();
-        if (authenticated) {
-          if (mounted) {
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainNavigation()));
+      // Cek apakah sidik jari diaktifkan oleh user
+      final prefs = await SharedPreferences.getInstance();
+      bool isFingerprintEnabled = prefs.getBool('is_fingerprint_enabled') ?? false;
+
+      if (isFingerprintEnabled) {
+        bool isBiometricAvailable = await BiometricService.isBiometricAvailable();
+        if (isBiometricAvailable) {
+          bool authenticated = await BiometricService.authenticate();
+          if (authenticated) {
+            if (mounted) {
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainNavigation()));
+            }
+          } else {
+            // Kalau batal/gagal sidik jari, lempar ke login
+            if (mounted) {
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginPage()));
+            }
           }
-        } else {
-          // Kalau batal sidik jari, lempar ke login
-          if (mounted) {
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginPage()));
-          }
+          return;
         }
-      } else {
-        // Device tidak support sidik jari, langsung masuk ke dashboard karena sudah punya token
-        if (mounted) {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainNavigation()));
-        }
+      }
+
+      // Jika tidak diaktifkan atau perangkat tidak mendukung, langsung masuk dashboard
+      if (mounted) {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainNavigation()));
       }
     } else {
       // Tidak punya token (belum pernah login)
