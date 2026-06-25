@@ -23,80 +23,124 @@ class PaymentConfirmationPage extends StatefulWidget {
 class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
   bool _isLoading = false;
 
-  void _showPinDialog() {
-    final TextEditingController pinController = TextEditingController();
-    String currentOtpType = 'totp';
-
-    showDialog(
+  void _showPinDialog() async {
+    // 1. PIN Verifikasi Dummy
+    if (!mounted) return;
+    final bool? isPinValid = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (context) {
+      builder: (ctx) {
+        final _pinController = TextEditingController();
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('Masukkan PIN', style: TextStyle(fontWeight: FontWeight.bold)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Masukkan PIN E-Money Anda untuk melanjutkan pembayaran', style: TextStyle(fontSize: 13, color: AppColors.slate500)),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _pinController,
+                  keyboardType: TextInputType.number,
+                  obscureText: true,
+                  maxLength: 6,
+                  decoration: const InputDecoration(hintText: '******', border: OutlineInputBorder()),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Batal', style: TextStyle(color: AppColors.slate500)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (_pinController.text.length >= 4) {
+                  Navigator.pop(ctx, true);
+                } else {
+                  ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('PIN tidak valid')));
+                }
+              },
+              child: const Text('Lanjut'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (isPinValid != true || !mounted) return;
+
+    // 2. Google Authenticator / Email OTP
+    String currentOtpType = 'totp';
+    
+    final String? authCode = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        final _authController = TextEditingController();
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: const Text('Keamanan 2FA'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text('Masukkan OTP dari Google Authenticator atau Email Anda untuk menyetujui transaksi ini.'),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: pinController,
-                    keyboardType: TextInputType.number,
-                    obscureText: true,
-                    maxLength: 6,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: '******',
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: const Text('Google Authenticator / Email', style: TextStyle(fontWeight: FontWeight.bold)),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Masukkan 6 digit kode dari Google Authenticator atau Email Anda', style: TextStyle(fontSize: 13, color: AppColors.slate500)),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _authController,
+                      keyboardType: TextInputType.number,
+                      maxLength: 6,
+                      decoration: const InputDecoration(hintText: '123456', border: OutlineInputBorder()),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  OutlinedButton.icon(
-                    onPressed: () async {
-                      final repository = WalletRepository();
-                      bool success = await repository.requestEmailOtp(widget.token);
-                      if (success) {
-                        setDialogState(() {
-                          currentOtpType = 'email';
-                        });
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('OTP telah dikirim ke email Anda!')),
-                          );
+                    const SizedBox(height: 16),
+                    OutlinedButton.icon(
+                      onPressed: () async {
+                        final repository = WalletRepository();
+                        bool success = await repository.requestEmailOtp(widget.token);
+                        if (success) {
+                          setDialogState(() {
+                            currentOtpType = 'email';
+                          });
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('OTP telah dikirim ke email Anda!')),
+                            );
+                          }
+                        } else {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Gagal mengirim OTP ke email.')),
+                            );
+                          }
                         }
-                      } else {
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Gagal mengirim OTP ke email.')),
-                          );
-                        }
-                      }
-                    },
-                    icon: const Icon(Icons.email),
-                    label: const Text('Kirim OTP ke Email (SMTP)'),
-                  ),
-                  if (currentOtpType == 'email')
-                    const Padding(
-                      padding: EdgeInsets.only(top: 8.0),
-                      child: Text('Gunakan OTP dari email', style: TextStyle(color: Colors.green, fontSize: 12)),
-                    )
-                ],
+                      },
+                      icon: const Icon(Icons.email),
+                      label: const Text('Kirim OTP ke Email'),
+                    ),
+                    if (currentOtpType == 'email')
+                      const Padding(
+                        padding: EdgeInsets.only(top: 8.0),
+                        child: Text('Gunakan OTP dari email', style: TextStyle(color: Colors.green, fontSize: 12)),
+                      )
+                  ],
+                ),
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Batal'),
+                  onPressed: () => Navigator.pop(ctx, null),
+                  child: const Text('Batal', style: TextStyle(color: AppColors.slate500)),
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    final pin = pinController.text;
-                    if (pin.length >= 4) {
-                      Navigator.pop(context); // Tutup dialog
-                      _processPayment(pin, currentOtpType);
+                    if (_authController.text.length >= 4) {
+                      Navigator.pop(ctx, _authController.text);
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('OTP tidak valid! Minimal 4 digit.')),
-                      );
+                      ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('Kode tidak valid!')));
                     }
                   },
                   child: const Text('Verifikasi'),
@@ -107,6 +151,10 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
         );
       },
     );
+
+    if (authCode != null && authCode.isNotEmpty) {
+      _processPayment(authCode, currentOtpType);
+    }
   }
 
   Future<void> _processPayment(String otpCode, String otpType) async {
