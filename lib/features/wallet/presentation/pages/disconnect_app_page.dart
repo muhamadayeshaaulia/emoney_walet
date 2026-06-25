@@ -26,19 +26,21 @@ class _DisconnectAppPageState extends State<DisconnectAppPage> {
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Text('Masukkan PIN', style: TextStyle(fontWeight: FontWeight.bold)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Masukkan PIN E-Money Anda untuk memutuskan hubungan', style: TextStyle(fontSize: 13, color: AppColors.slate500)),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _pinController,
-                keyboardType: TextInputType.number,
-                obscureText: true,
-                maxLength: 6,
-                decoration: const InputDecoration(hintText: '******', border: OutlineInputBorder()),
-              ),
-            ],
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Masukkan PIN E-Money Anda untuk memutuskan hubungan', style: TextStyle(fontSize: 13, color: AppColors.slate500)),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _pinController,
+                  keyboardType: TextInputType.number,
+                  obscureText: true,
+                  maxLength: 6,
+                  decoration: const InputDecoration(hintText: '******', border: OutlineInputBorder()),
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -76,18 +78,20 @@ class _DisconnectAppPageState extends State<DisconnectAppPage> {
             return AlertDialog(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               title: const Text('Google Authenticator', style: TextStyle(fontWeight: FontWeight.bold)),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text('Masukkan 6 digit kode dari Google Authenticator Anda', style: TextStyle(fontSize: 13, color: AppColors.slate500)),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _authController,
-                    keyboardType: TextInputType.number,
-                    maxLength: 6,
-                    decoration: const InputDecoration(hintText: '123456', border: OutlineInputBorder()),
-                  ),
-                ],
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Masukkan 6 digit kode dari Google Authenticator Anda', style: TextStyle(fontSize: 13, color: AppColors.slate500)),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _authController,
+                      keyboardType: TextInputType.number,
+                      maxLength: 6,
+                      decoration: const InputDecoration(hintText: '123456', border: OutlineInputBorder()),
+                    ),
+                  ],
+                ),
               ),
               actions: [
                 TextButton(
@@ -155,6 +159,7 @@ class _DisconnectAppPageState extends State<DisconnectAppPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text('Putuskan Aplikasi', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
@@ -165,44 +170,46 @@ class _DisconnectAppPageState extends State<DisconnectAppPage> {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.link_off_rounded, size: 80, color: Colors.redAccent),
-            const SizedBox(height: 20),
-            const Text(
-              'Putuskan hubungan dengan E-Commerce 716 Production?',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Aplikasi ini tidak akan lagi dapat melihat saldo atau melakukan pembayaran secara otomatis dari E-Money Wallet Anda.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: AppColors.slate500),
-            ),
-            const SizedBox(height: 40),
-            _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : ElevatedButton(
-                    onPressed: _startDisconnectionFlow,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.redAccent,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.link_off_rounded, size: 80, color: Colors.redAccent),
+              const SizedBox(height: 20),
+              const Text(
+                'Putuskan hubungan dengan E-Commerce 716 Production?',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Aplikasi ini tidak akan lagi dapat melihat saldo atau melakukan pembayaran secara otomatis dari E-Money Wallet Anda.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: AppColors.slate500),
+              ),
+              const SizedBox(height: 40),
+              _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : ElevatedButton(
+                      onPressed: _startDisconnectionFlow,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Putuskan Hubungan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                     ),
-                    child: const Text('Putuskan Hubungan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-                  ),
-            const SizedBox(height: 16),
-            if (!_isLoading)
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Batal', style: TextStyle(color: AppColors.slate500)),
-              )
-          ],
+              const SizedBox(height: 16),
+              if (!_isLoading)
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Batal', style: TextStyle(color: AppColors.slate500)),
+                )
+            ],
+          ),
         ),
       ),
     );

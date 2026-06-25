@@ -26,19 +26,21 @@ class _ConnectAppPageState extends State<ConnectAppPage> {
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Text('Masukkan PIN', style: TextStyle(fontWeight: FontWeight.bold)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Masukkan PIN E-Money Anda', style: TextStyle(fontSize: 13, color: AppColors.slate500)),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _pinController,
-                keyboardType: TextInputType.number,
-                obscureText: true,
-                maxLength: 6,
-                decoration: const InputDecoration(hintText: '******', border: OutlineInputBorder()),
-              ),
-            ],
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Masukkan PIN E-Money Anda', style: TextStyle(fontSize: 13, color: AppColors.slate500)),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _pinController,
+                  keyboardType: TextInputType.number,
+                  obscureText: true,
+                  maxLength: 6,
+                  decoration: const InputDecoration(hintText: '******', border: OutlineInputBorder()),
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -76,18 +78,20 @@ class _ConnectAppPageState extends State<ConnectAppPage> {
             return AlertDialog(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               title: const Text('Google Authenticator', style: TextStyle(fontWeight: FontWeight.bold)),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text('Masukkan 6 digit kode dari Google Authenticator Anda', style: TextStyle(fontSize: 13, color: AppColors.slate500)),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _authController,
-                    keyboardType: TextInputType.number,
-                    maxLength: 6,
-                    decoration: const InputDecoration(hintText: '123456', border: OutlineInputBorder()),
-                  ),
-                ],
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Masukkan 6 digit kode dari Google Authenticator Anda', style: TextStyle(fontSize: 13, color: AppColors.slate500)),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _authController,
+                      keyboardType: TextInputType.number,
+                      maxLength: 6,
+                      decoration: const InputDecoration(hintText: '123456', border: OutlineInputBorder()),
+                    ),
+                  ],
+                ),
               ),
               actions: [
                 TextButton(
@@ -155,6 +159,7 @@ class _ConnectAppPageState extends State<ConnectAppPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text('Hubungkan Aplikasi', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
@@ -165,44 +170,46 @@ class _ConnectAppPageState extends State<ConnectAppPage> {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.store_rounded, size: 80, color: Color(0xFFFF6B35)),
-            const SizedBox(height: 20),
-            const Text(
-              'Aplikasi E-Commerce 716 Production ingin terhubung dengan E-Money Wallet Anda.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Ini akan mengizinkan aplikasi untuk melakukan pembayaran otomatis dan melihat riwayat transaksi.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: AppColors.slate500),
-            ),
-            const SizedBox(height: 40),
-            _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : ElevatedButton(
-                    onPressed: _startConnectionFlow,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryColor,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.store_rounded, size: 80, color: Color(0xFFFF6B35)),
+              const SizedBox(height: 20),
+              const Text(
+                'Aplikasi E-Commerce 716 Production ingin terhubung dengan E-Money Wallet Anda.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Ini akan mengizinkan aplikasi untuk melakukan pembayaran otomatis dan melihat riwayat transaksi.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: AppColors.slate500),
+              ),
+              const SizedBox(height: 40),
+              _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : ElevatedButton(
+                      onPressed: _startConnectionFlow,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Setujui & Hubungkan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                     ),
-                    child: const Text('Setujui & Hubungkan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-                  ),
-            const SizedBox(height: 16),
-            if (!_isLoading)
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Batal', style: TextStyle(color: AppColors.slate500)),
-              )
-          ],
+              const SizedBox(height: 16),
+              if (!_isLoading)
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Batal', style: TextStyle(color: AppColors.slate500)),
+                )
+            ],
+          ),
         ),
       ),
     );
