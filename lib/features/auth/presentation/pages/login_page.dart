@@ -162,6 +162,8 @@ class _LoginPageState extends State<LoginPage> {
 
   void _showVerificationChoiceDialog() {
     final rootContext = context; // context halaman Login, bukan context bottom sheet
+    bool isCompleted = false;
+
     showModalBottomSheet(
       context: rootContext,
       isScrollControlled: true,
@@ -185,6 +187,7 @@ class _LoginPageState extends State<LoginPage> {
               AppButton(
                 label: 'Sidik Jari (Biometrik)',
                 onPressed: () async {
+                  isCompleted = true;
                   Navigator.pop(sheetContext); // tutup sheet dengan sheetContext
                   bool authenticated = await BiometricService.authenticate();
                   if (authenticated) {
@@ -210,7 +213,8 @@ class _LoginPageState extends State<LoginPage> {
                   side: const BorderSide(color: AppColors.primary, width: 2),
                 ),
                 onPressed: () async {
-                  Navigator.pop(context);
+                  isCompleted = true;
+                  Navigator.pop(sheetContext); // tutup sheet dengan sheetContext
                   // Kirim OTP email hanya saat user memilih opsi ini
                   setState(() => _isLoading = true);
                   await AuthService.resendEmailOtp(action: 'login');
@@ -224,10 +228,10 @@ class _LoginPageState extends State<LoginPage> {
           ),
         );
       },
-    ).then((_) {
-      // Jika dialog ditutup tanpa memilih (di-dismiss), logout akun
-      // Tetapi karena ini sulit melacak apakah dia klik tombol atau tidak,
-      // kita biarkan saja (pengguna terjebak di layar login tanpa state masuk)
+    ).then((_) async {
+      if (!isCompleted) {
+        await AuthService.logout();
+      }
     });
   }
 
@@ -264,6 +268,7 @@ class _LoginPageState extends State<LoginPage> {
     final otpController = TextEditingController();
     bool isVerifying = false;
     String? localError;
+    bool isVerified = false;
 
     showModalBottomSheet(
       context: context,
@@ -332,6 +337,7 @@ class _LoginPageState extends State<LoginPage> {
                       setModalState(() => isVerifying = false);
 
                       if (error == null) {
+                        isVerified = true;
                         if (!mounted) return;
                         Navigator.pop(context); // tutup bottom sheet
                         Navigator.pushReplacement(
@@ -375,7 +381,11 @@ class _LoginPageState extends State<LoginPage> {
           }
         );
       },
-    );
+    ).then((_) async {
+      if (!isVerified) {
+        await AuthService.logout();
+      }
+    });
   }
 
   void _showForgotPasswordDialog() {
