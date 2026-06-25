@@ -23,6 +23,7 @@ class _NotificationPageState extends State<NotificationPage> {
 
   Future<void> _loadNotifications() async {
     final notifs = await NotificationService.getNotifications();
+    await NotificationService.markAllAsRead(); // Tandai semua sebagai dibaca
     setState(() {
       _notifications = notifs;
       _isLoading = false;

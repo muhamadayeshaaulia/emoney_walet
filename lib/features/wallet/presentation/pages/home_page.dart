@@ -27,6 +27,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _requestNotificationPermission();
     _fetchBalance();
+    _loadUnreadNotificationsCount();
   }
 
   void _requestNotificationPermission() async {
@@ -34,6 +35,15 @@ class _HomePageState extends State<HomePage> {
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
         ?.requestNotificationsPermission();
+  }
+
+  void _loadUnreadNotificationsCount() async {
+    final count = await NotificationService.getUnreadCount();
+    if (mounted) {
+      setState(() {
+        _unreadNotifications = count;
+      });
+    }
   }
 
   Future<void> _fetchBalance() async {
@@ -59,9 +69,7 @@ class _HomePageState extends State<HomePage> {
     );
     if (result == true) {
       _fetchBalance(); // Refresh saldo otomatis dari server
-      setState(() {
-        _unreadNotifications++; // Tambah notifikasi baru
-      });
+      _loadUnreadNotificationsCount(); // Muat ulang jumlah notifikasi
     }
   }
 
@@ -78,14 +86,12 @@ class _HomePageState extends State<HomePage> {
               label: Text('$_unreadNotifications'),
               child: const Icon(Icons.notifications),
             ),
-            onPressed: () {
-              setState(() {
-                _unreadNotifications = 0;
-              });
-              Navigator.push(
+            onPressed: () async {
+              await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const NotificationPage()),
               );
+              _loadUnreadNotificationsCount(); // Muat ulang jumlah notifikasi setelah dibaca
             },
           ),
         ],

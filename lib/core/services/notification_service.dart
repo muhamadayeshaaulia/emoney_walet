@@ -14,6 +14,7 @@ class NotificationService {
       'title': title,
       'body': body,
       'date': DateTime.now().toIso8601String(),
+      'read': false, // Default: belum dibaca
     };
     if (extraData != null) {
       newNotif['extraData'] = extraData;
@@ -28,6 +29,25 @@ class NotificationService {
     final prefs = await SharedPreferences.getInstance();
     List<String> notifications = prefs.getStringList(_key) ?? [];
     return notifications.map((e) => jsonDecode(e) as Map<String, dynamic>).toList();
+  }
+
+  // Mengambil jumlah notifikasi yang belum dibaca
+  static Future<int> getUnreadCount() async {
+    final list = await getNotifications();
+    return list.where((e) => e['read'] == false || e['read'] == null).length;
+  }
+
+  // Menandai semua notifikasi sebagai dibaca
+  static Future<void> markAllAsRead() async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> notifications = prefs.getStringList(_key) ?? [];
+    List<String> updated = [];
+    for (var item in notifications) {
+      final map = jsonDecode(item) as Map<String, dynamic>;
+      map['read'] = true;
+      updated.add(jsonEncode(map));
+    }
+    await prefs.setStringList(_key, updated);
   }
 
   // Menghapus 1 notifikasi
