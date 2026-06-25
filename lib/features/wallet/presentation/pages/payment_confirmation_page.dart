@@ -185,7 +185,7 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
         // Kembali ke dashboard E-Money
         Navigator.pop(context);
         // Memanggil aplikasi E-Commerce
-        final returnUrl = Uri.parse('ecommerceapp://success');
+        final returnUrl = Uri.parse('ecommerceapp://success?invoice_id=${widget.invoiceId}');
         try {
           await launchUrl(returnUrl, mode: LaunchMode.externalApplication);
         } catch (e) {
