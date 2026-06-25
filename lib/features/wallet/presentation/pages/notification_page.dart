@@ -23,7 +23,6 @@ class _NotificationPageState extends State<NotificationPage> {
 
   Future<void> _loadNotifications() async {
     final notifs = await NotificationService.getNotifications();
-    await NotificationService.markAllAsRead(); // Tandai semua sebagai dibaca
     setState(() {
       _notifications = notifs;
       _isLoading = false;
@@ -45,6 +44,163 @@ class _NotificationPageState extends State<NotificationPage> {
     return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
   }
 
+  Future<void> _showNotificationDetail(Map<String, dynamic> notif) async {
+    // 1. Mark as read
+    await NotificationService.markAsRead(notif['id']);
+    _loadNotifications(); // Reload UI to update the unread badges/indicators
+
+    if (!mounted) return;
+
+    // 2. Show beautiful detail BottomSheet
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.only(left: 24, right: 24, top: 16, bottom: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 48,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: const BoxDecoration(
+                    color: AppColors.primarySurface,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.notifications_active,
+                    color: AppColors.primaryColor,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        notif['title'] ?? 'Notifikasi',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.ink,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _formatDate(notif['date']),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.slate400,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            const Divider(color: AppColors.line),
+            const SizedBox(height: 16),
+            const Text(
+              'Detail Pesan',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: AppColors.slate500,
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.4,
+              ),
+              child: SingleChildScrollView(
+                child: Text(
+                  notif['body'] ?? '',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    color: AppColors.ink,
+                    height: 1.5,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      side: const BorderSide(color: AppColors.slate300),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Tutup',
+                      style: TextStyle(color: AppColors.slate600, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                if (notif['extraData'] != null) ...[
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context); // Close bottom sheet
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ReceiptPage(data: notif['extraData']),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        'Lihat Resi',
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,7 +209,20 @@ class _NotificationPageState extends State<NotificationPage> {
         backgroundColor: AppColors.primaryColor,
         foregroundColor: Colors.white,
         actions: [
-          if (_notifications.isNotEmpty)
+          if (_notifications.isNotEmpty) ...[
+            IconButton(
+              icon: const Icon(Icons.done_all),
+              tooltip: 'Tandai Semua Dibaca',
+              onPressed: () async {
+                await NotificationService.markAllAsRead();
+                _loadNotifications();
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Semua notifikasi ditandai dibaca'), duration: Duration(seconds: 1)),
+                  );
+                }
+              },
+            ),
             IconButton(
               icon: const Icon(Icons.delete_sweep),
               tooltip: 'Hapus Semua',
@@ -77,6 +246,7 @@ class _NotificationPageState extends State<NotificationPage> {
                 );
               },
             ),
+          ],
         ],
       ),
       body: _isLoading
@@ -96,6 +266,7 @@ class _NotificationPageState extends State<NotificationPage> {
                   itemCount: _notifications.length,
                   itemBuilder: (context, index) {
                     final notif = _notifications[index];
+                    final isRead = notif['read'] == true;
                     return Dismissible(
                       key: Key(notif['id']),
                       direction: DismissDirection.endToStart,
@@ -111,22 +282,71 @@ class _NotificationPageState extends State<NotificationPage> {
                           const SnackBar(content: Text('Notifikasi dihapus'), duration: Duration(seconds: 1)),
                         );
                       },
-                      child: ListTile(
-                        leading: const CircleAvatar(
-                          backgroundColor: AppColors.primaryColor,
-                          child: Icon(Icons.notifications, color: Colors.white),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: isRead ? Colors.transparent : AppColors.primarySurface.withOpacity(0.3),
+                          border: const Border(
+                            bottom: BorderSide(color: AppColors.line, width: 1),
+                          ),
                         ),
-                        title: Text(notif['title'], style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text('${notif['body']}\n${_formatDate(notif['date'])}'),
-                        isThreeLine: true,
-                        onTap: () {
-                          if (notif['extraData'] != null) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => ReceiptPage(data: notif['extraData'])),
-                            );
-                          }
-                        },
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: isRead ? AppColors.slate300 : AppColors.primaryColor,
+                            child: Icon(
+                              isRead ? Icons.notifications_none : Icons.notifications_active,
+                              color: Colors.white,
+                            ),
+                          ),
+                          title: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  notif['title'] ?? 'Notifikasi',
+                                  style: TextStyle(
+                                    fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
+                                    color: AppColors.ink,
+                                  ),
+                                ),
+                              ),
+                              if (!isRead)
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  margin: const EdgeInsets.only(left: 8),
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.red,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                            ],
+                          ),
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: 4.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  notif['body'] ?? '',
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: isRead ? AppColors.slate500 : AppColors.ink.withOpacity(0.8),
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  _formatDate(notif['date']),
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.slate400,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          onTap: () => _showNotificationDetail(notif),
+                        ),
                       ),
                     );
                   },

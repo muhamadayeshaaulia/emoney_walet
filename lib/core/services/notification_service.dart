@@ -37,6 +37,21 @@ class NotificationService {
     return list.where((e) => e['read'] == false || e['read'] == null).length;
   }
 
+  // Menandai satu notifikasi sebagai dibaca
+  static Future<void> markAsRead(String id) async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> notifications = prefs.getStringList(_key) ?? [];
+    List<String> updated = [];
+    for (var item in notifications) {
+      final map = jsonDecode(item) as Map<String, dynamic>;
+      if (map['id'] == id) {
+        map['read'] = true;
+      }
+      updated.add(jsonEncode(map));
+    }
+    await prefs.setStringList(_key, updated);
+  }
+
   // Menandai semua notifikasi sebagai dibaca
   static Future<void> markAllAsRead() async {
     final prefs = await SharedPreferences.getInstance();
