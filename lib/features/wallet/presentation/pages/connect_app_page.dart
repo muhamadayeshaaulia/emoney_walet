@@ -146,7 +146,8 @@ class _ConnectAppPageState extends State<ConnectAppPage> {
         Navigator.pop(context);
 
         // Kembali ke E-Commerce
-        final returnUrl = Uri.parse('ecommerceapp://connect_success');
+        final token = await AuthService.getToken();
+        final returnUrl = Uri.parse('ecommerceapp://connect_success?token=$token');
         try {
           await launchUrl(returnUrl, mode: LaunchMode.externalApplication);
         } catch (e) {
