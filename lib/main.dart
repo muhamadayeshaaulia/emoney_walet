@@ -25,7 +25,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
+  const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('ic_notification');
   const InitializationSettings initializationSettings = InitializationSettings(android: initializationSettingsAndroid);
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 

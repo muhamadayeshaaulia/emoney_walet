@@ -59,6 +59,7 @@ class _ReceiptPageState extends State<ReceiptPage> {
     final amount = (widget.data['amount'] as num?)?.toDouble() ?? 0;
     final invoiceId = widget.data['invoice_id'] ?? '-';
     final String rawDate = widget.data['date'] ?? '';
+    final paymentMethod = widget.data['payment_method'] ?? '';
     
     String displayDate = '-';
     if (rawDate.isNotEmpty) {
@@ -149,6 +150,13 @@ class _ReceiptPageState extends State<ReceiptPage> {
                                 padding: EdgeInsets.symmetric(vertical: 16.0),
                                 child: Divider(height: 1, color: Colors.black12),
                               ),
+                              if (isTopUp && paymentMethod.isNotEmpty) ...[
+                                _buildRow('Metode Pembayaran', paymentMethod),
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 16.0),
+                                  child: Divider(height: 1, color: Colors.black12),
+                                ),
+                              ],
                               _buildRow('No. Invoice', invoiceId),
                               const Padding(
                                 padding: EdgeInsets.symmetric(vertical: 16.0),
