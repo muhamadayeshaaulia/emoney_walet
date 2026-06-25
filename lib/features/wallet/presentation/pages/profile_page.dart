@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../../../../main.dart';
 import '../../../../core/services/auth_service.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_field.dart';
@@ -78,6 +79,10 @@ class _ProfilePageState extends State<ProfilePage> {
         'Sidik Jari Aktif! 🥳',
         'Yeyyy! Sekarang Anda bisa login dengan lebih mudah menggunakan sidik jari Anda',
         notificationDetails,
+      );
+      await NotificationService.addNotification(
+        'Sidik Jari Aktif! 🥳',
+        'Yeyyy! Sekarang Anda bisa login dengan lebih mudah menggunakan sidik jari Anda',
       );
     }
   }
@@ -199,6 +204,10 @@ class _ProfilePageState extends State<ProfilePage> {
                           'Sekarang akun Anda dilindungi dengan kode OTP setiap kali login.',
                           notificationDetails,
                         );
+                        await NotificationService.addNotification(
+                          'Keamanan OTP Aktif! 🛡️',
+                          'Sekarang akun Anda dilindungi dengan kode OTP setiap kali login.',
+                        );
                       } else {
                         setModalState(() => localError = error);
                       }
@@ -264,6 +273,10 @@ class _ProfilePageState extends State<ProfilePage> {
         'Keamanan OTP Dinonaktifkan ⚠️',
         'Login dengan OTP telah dimatikan. Akun Anda sekarang lebih rentan.',
         notificationDetails,
+      );
+      await NotificationService.addNotification(
+        'Keamanan OTP Dinonaktifkan ⚠️',
+        'Login dengan OTP telah dimatikan. Akun Anda sekarang lebih rentan.',
       );
     }
   }
@@ -420,6 +433,10 @@ class _ProfilePageState extends State<ProfilePage> {
                               'Google Authenticator Dinonaktifkan ⚠️',
                               'Verifikasi 2-Langkah dengan Google Authenticator telah dinonaktifkan.',
                               notificationDetails,
+                            );
+                            await NotificationService.addNotification(
+                              'Google Authenticator Dinonaktifkan ⚠️',
+                              'Verifikasi 2-Langkah dengan Google Authenticator telah dinonaktifkan.',
                             );
 
                             _loadSettings(); // Reload settings untuk update UI

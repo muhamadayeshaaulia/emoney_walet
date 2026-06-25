@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../../../../main.dart';
 import '../../../../core/services/auth_service.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../../../core/theme/app_colors.dart';
 
 class GoogleAuthSetupPage extends StatefulWidget {
@@ -115,6 +116,10 @@ class _GoogleAuthSetupPageState extends State<GoogleAuthSetupPage> {
           'Google Authenticator Aktif! 🛡️',
           'Verifikasi 2-Langkah dengan Google Authenticator berhasil diaktifkan.',
           notificationDetails,
+        );
+        await NotificationService.addNotification(
+          'Google Authenticator Aktif! 🛡️',
+          'Verifikasi 2-Langkah dengan Google Authenticator berhasil diaktifkan.',
         );
         if (mounted) {
           Navigator.pop(context, true); // Mengembalikan true agar halaman sebelumnya tahu aktivasi sukses
