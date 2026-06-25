@@ -77,13 +77,13 @@ class _ProfilePageState extends State<ProfilePage> {
       const NotificationDetails notificationDetails = NotificationDetails(android: androidDetails);
       await flutterLocalNotificationsPlugin.show(
         1,
-        'Sidik Jari Aktif! 🥳',
-        'Yeyyy! Sekarang Anda bisa login dengan lebih mudah menggunakan sidik jari Anda',
+        'Sidik Jari Aktif',
+        'Sekarang Anda bisa login dengan lebih mudah menggunakan sidik jari Anda',
         notificationDetails,
       );
       await NotificationService.addNotification(
-        'Sidik Jari Aktif! 🥳',
-        'Yeyyy! Sekarang Anda bisa login dengan lebih mudah menggunakan sidik jari Anda',
+        'Sidik Jari Aktif',
+        'Sekarang Anda bisa login dengan lebih mudah menggunakan sidik jari Anda',
       );
     }
   }
@@ -201,12 +201,12 @@ class _ProfilePageState extends State<ProfilePage> {
                         const NotificationDetails notificationDetails = NotificationDetails(android: androidDetails);
                         await flutterLocalNotificationsPlugin.show(
                           2,
-                          'Keamanan OTP Aktif! 🛡️',
+                          'Keamanan OTP Aktif',
                           'Sekarang akun Anda dilindungi dengan kode OTP setiap kali login.',
                           notificationDetails,
                         );
                         await NotificationService.addNotification(
-                          'Keamanan OTP Aktif! 🛡️',
+                          'Keamanan OTP Aktif',
                           'Sekarang akun Anda dilindungi dengan kode OTP setiap kali login.',
                         );
                       } else {
@@ -271,12 +271,12 @@ class _ProfilePageState extends State<ProfilePage> {
       const NotificationDetails notificationDetails = NotificationDetails(android: androidDetails);
       await flutterLocalNotificationsPlugin.show(
         3,
-        'Keamanan OTP Dinonaktifkan ⚠️',
+        'Keamanan OTP Dinonaktifkan',
         'Login dengan OTP telah dimatikan. Akun Anda sekarang lebih rentan.',
         notificationDetails,
       );
       await NotificationService.addNotification(
-        'Keamanan OTP Dinonaktifkan ⚠️',
+        'Keamanan OTP Dinonaktifkan',
         'Login dengan OTP telah dimatikan. Akun Anda sekarang lebih rentan.',
       );
     }
@@ -431,12 +431,12 @@ class _ProfilePageState extends State<ProfilePage> {
                             const NotificationDetails notificationDetails = NotificationDetails(android: androidDetails);
                             await flutterLocalNotificationsPlugin.show(
                               6,
-                              'Google Authenticator Dinonaktifkan ⚠️',
+                              'Google Authenticator Dinonaktifkan',
                               'Verifikasi 2-Langkah dengan Google Authenticator telah dinonaktifkan.',
                               notificationDetails,
                             );
                             await NotificationService.addNotification(
-                              'Google Authenticator Dinonaktifkan ⚠️',
+                              'Google Authenticator Dinonaktifkan',
                               'Verifikasi 2-Langkah dengan Google Authenticator telah dinonaktifkan.',
                             );
 

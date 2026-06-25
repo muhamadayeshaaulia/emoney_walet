@@ -137,7 +137,7 @@ class _ConnectAppPageState extends State<ConnectAppPage> {
 
       // Simpan notifikasi
       await NotificationService.addNotification(
-        'Aplikasi Terhubung 🔗',
+        'Aplikasi Terhubung',
         'E-Commerce 716 Production berhasil dihubungkan ke E-Money Wallet.',
       );
 

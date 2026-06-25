@@ -143,7 +143,7 @@ class _TopUpPageState extends State<TopUpPage> {
         String formattedAmount = CurrencyInputFormatter.formatNumber(amount.toInt());
 
         await NotificationService.addNotification(
-          'Top Up Berhasil! 💸', 
+          'Top Up Berhasil', 
           'Saldo E-Money Mamah Saya bertambah Rp $formattedAmount via $selectedMethodName',
           extraData: {
             'type': 'topup',
@@ -156,7 +156,7 @@ class _TopUpPageState extends State<TopUpPage> {
 
         await flutterLocalNotificationsPlugin.show(
           0,
-          'Top Up Berhasil! 💸',
+          'Top Up Berhasil',
           'Saldo E-Money Mamah Saya bertambah Rp $formattedAmount via $selectedMethodName',
           platformChannelSpecifics,
         );

@@ -48,7 +48,6 @@ class _ConnectedAppsPageState extends State<ConnectedAppsPage> with WidgetsBindi
   Future<void> _loadConnectedApps() async {
     final prefs = await SharedPreferences.getInstance();
     final isConnected = prefs.getBool('is_ecommerce_connected') ?? false;
-    
     if (isConnected) {
       setState(() {
         _apps = [

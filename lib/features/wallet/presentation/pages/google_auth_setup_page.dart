@@ -78,7 +78,7 @@ class _GoogleAuthSetupPageState extends State<GoogleAuthSetupPage> {
       const NotificationDetails notificationDetails = NotificationDetails(android: androidDetails);
       await flutterLocalNotificationsPlugin.show(
         5,
-        'Kunci Rahasia Disalin! 📋',
+        'Kunci Rahasia Disalin',
         'Kunci rahasia Google Authenticator disalin ke papan klip.',
         notificationDetails,
       );
@@ -113,12 +113,12 @@ class _GoogleAuthSetupPageState extends State<GoogleAuthSetupPage> {
         const NotificationDetails notificationDetails = NotificationDetails(android: androidDetails);
         await flutterLocalNotificationsPlugin.show(
           4,
-          'Google Authenticator Aktif! 🛡️',
+          'Google Authenticator Aktif',
           'Verifikasi 2-Langkah dengan Google Authenticator berhasil diaktifkan.',
           notificationDetails,
         );
         await NotificationService.addNotification(
-          'Google Authenticator Aktif! 🛡️',
+          'Google Authenticator Aktif',
           'Verifikasi 2-Langkah dengan Google Authenticator berhasil diaktifkan.',
         );
         if (mounted) {

@@ -130,7 +130,7 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
         
         // Simpan notifikasi ke SharedPreferences
         await NotificationService.addNotification(
-          'Pembayaran Sukses ✅',
+          'Pembayaran Sukses',
           'Pembayaran tagihan ${widget.invoiceId} sebesar Rp ${widget.amount} berhasil.',
         );
 
