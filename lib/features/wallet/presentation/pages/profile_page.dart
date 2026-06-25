@@ -280,10 +280,15 @@ class _ProfilePageState extends State<ProfilePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-            const CircleAvatar(
+            CircleAvatar(
               radius: 50,
               backgroundColor: AppColors.primaryColor,
-              child: Icon(Icons.person, size: 60, color: Colors.white),
+              backgroundImage: user?.photoURL != null
+                  ? NetworkImage(user!.photoURL!)
+                  : null,
+              child: user?.photoURL == null
+                  ? const Icon(Icons.person, size: 60, color: Colors.white)
+                  : null,
             ),
             const SizedBox(height: 20),
             Row(
