@@ -292,4 +292,69 @@ class AuthService {
       return "Terjadi kesalahan sistem";
     }
   }
+
+  static Future<Map<String, dynamic>?> getProfile() async {
+    try {
+      String? token = await getToken();
+      if (token == null) return null;
+
+      final response = await DioClient.instance.get(
+        '/auth/me',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        return response.data['data'];
+      }
+      return null;
+    } catch (e) {
+      debugPrint('GetProfile Error: $e');
+      return null;
+    }
+  }
+
+  static Future<Map<String, dynamic>?> registerTOTP() async {
+    try {
+      String? token = await getToken();
+      if (token == null) return null;
+
+      final response = await DioClient.instance.post(
+        '/otp/totp/register',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        return response.data['data'];
+      }
+      return null;
+    } catch (e) {
+      debugPrint('RegisterTOTP Error: $e');
+      return null;
+    }
+  }
+
+  static Future<String?> verifyTOTP(String code) async {
+    try {
+      String? token = await getToken();
+      if (token == null) return 'Sesi tidak valid, silakan login ulang.';
+
+      final response = await DioClient.instance.post(
+        '/otp/totp/verify',
+        data: {'code': code},
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        return null; // Sukses
+      }
+      return response.data['message'] ?? 'Verifikasi TOTP gagal';
+    } catch (e) {
+      if (e is DioException) {
+        if (e.response?.data is Map) {
+          return e.response?.data['message'] ?? 'Verifikasi TOTP gagal';
+        }
+      }
+      return 'Terjadi kesalahan saat memverifikasi TOTP';
+    }
+  }
 }

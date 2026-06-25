@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -8,6 +9,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_field.dart';
 import '../../../auth/presentation/pages/login_page.dart';
+import 'google_auth_setup_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -19,6 +21,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   bool? _isFingerprintEnabled;
   bool? _isOtpLoginEnabled;
+  bool? _isTotpEnabled;
   String _userName = 'Memuat...';
 
   @override
@@ -40,10 +43,16 @@ class _ProfilePageState extends State<ProfilePage> {
   void _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     final uid = FirebaseAuth.instance.currentUser?.uid;
+    
+    // Ambil status TOTP dari backend
+    final profile = await AuthService.getProfile();
+    final totpEnabled = profile?['totp_enabled'] ?? false;
+
     if (mounted) {
       setState(() {
         _isFingerprintEnabled = prefs.getBool('is_fingerprint_enabled') ?? false;
         _isOtpLoginEnabled = prefs.getBool('is_otp_login_enabled_$uid') ?? false;
+        _isTotpEnabled = totpEnabled;
       });
     }
   }
@@ -64,7 +73,6 @@ class _ProfilePageState extends State<ProfilePage> {
         priority: Priority.high,
       );
       const NotificationDetails notificationDetails = NotificationDetails(android: androidDetails);
-      
       await flutterLocalNotificationsPlugin.show(
         1,
         'Sidik Jari Aktif! 🥳',
@@ -177,7 +185,6 @@ class _ProfilePageState extends State<ProfilePage> {
                         setState(() {
                           _isOtpLoginEnabled = true;
                         });
-                        
                         const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
                           'emoney_channel',
                           'Notifikasi E-Money',
@@ -186,7 +193,6 @@ class _ProfilePageState extends State<ProfilePage> {
                           priority: Priority.high,
                         );
                         const NotificationDetails notificationDetails = NotificationDetails(android: androidDetails);
-                        
                         await flutterLocalNotificationsPlugin.show(
                           2,
                           'Keamanan OTP Aktif! 🛡️',
@@ -208,7 +214,6 @@ class _ProfilePageState extends State<ProfilePage> {
                         });
                         String? error = await AuthService.resendEmailOtp(action: 'activation');
                         setModalState(() => isVerifying = false);
-                        
                         if (!mounted) return;
                         if (error == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -254,7 +259,6 @@ class _ProfilePageState extends State<ProfilePage> {
         priority: Priority.high,
       );
       const NotificationDetails notificationDetails = NotificationDetails(android: androidDetails);
-      
       await flutterLocalNotificationsPlugin.show(
         3,
         'Keamanan OTP Dinonaktifkan ⚠️',
@@ -264,12 +268,22 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  void _setupGoogleAuthenticator() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const GoogleAuthSetupPage()),
+    );
+
+    if (result == true) {
+      _loadSettings();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
     final email = user?.email ?? 'Tidak ada email';
     final isVerified = user?.emailVerified ?? false;
-    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profil Saya'),
@@ -349,6 +363,39 @@ class _ProfilePageState extends State<ProfilePage> {
                           onChanged: _toggleOtpLogin,
                           secondary: const Icon(Icons.security, color: AppColors.primaryColor, size: 32),
                           activeColor: AppColors.primaryColor,
+                        ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: _isTotpEnabled == null
+                      ? const ListTile(
+                          leading: Icon(Icons.phonelink_setup, color: Colors.grey, size: 32),
+                          title: Text('Memuat pengaturan...', style: TextStyle(color: Colors.grey)),
+                          trailing: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+                        )
+                      : ListTile(
+                          leading: Icon(
+                            _isTotpEnabled! ? Icons.verified_user : Icons.phonelink_setup,
+                            color: _isTotpEnabled! ? Colors.green : AppColors.primaryColor,
+                            size: 32,
+                          ),
+                          title: const Text('Google Authenticator (2FA)', style: TextStyle(fontWeight: FontWeight.bold)),
+                          subtitle: Text(
+                            _isTotpEnabled!
+                                ? 'Aktif (Digunakan saat pembayaran)' 
+                                : 'Nonaktif — Tap untuk mengaktifkan',
+                            style: TextStyle(
+                              color: _isTotpEnabled! ? Colors.green : Colors.grey,
+                            ),
+                          ),
+                          trailing: _isTotpEnabled!
+                              ? const Icon(Icons.check_circle, color: Colors.green)
+                              : const Icon(Icons.chevron_right),
+                          onTap: _isTotpEnabled! ? null : _setupGoogleAuthenticator,
                         ),
                 ),
               ),
