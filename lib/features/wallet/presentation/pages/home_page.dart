@@ -17,7 +17,7 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   double _balance = 0.0;
   bool _isLoading = true;
   int _unreadNotifications = 0;
@@ -60,10 +60,25 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _requestNotificationPermission();
     _fetchBalance();
     _loadUnreadNotificationsCount();
     _loadUserName();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadUnreadNotificationsCount();
+      _fetchBalance();
+    }
   }
 
   void _requestNotificationPermission() async {
@@ -250,18 +265,44 @@ class _HomePageState extends State<HomePage> {
                           letterSpacing: 0.5,
                         ),
                       ),
-                      IconButton(
-                        icon: Badge(
-                          isLabelVisible: _unreadNotifications > 0,
-                          label: Text('$_unreadNotifications'),
-                          child: const Icon(Icons.notifications, color: Colors.white),
-                        ),
-                        onPressed: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const NotificationPage()),
+                      ValueListenableBuilder<int>(
+                        valueListenable: NotificationService.unreadCountNotifier,
+                        builder: (context, count, child) {
+                          return Stack(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.notifications_none_rounded, color: Colors.white, size: 28),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const NotificationPage()),
+                                  ).then((_) {
+                                    NotificationService.updateUnreadCount();
+                                  });
+                                },
+                              ),
+                              if (count > 0)
+                                Positioned(
+                                  right: 8,
+                                  top: 8,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Text(
+                                      count.toString(),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
                           );
-                          _loadUnreadNotificationsCount();
                         },
                       ),
                     ],

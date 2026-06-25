@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:app_links/app_links.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -41,6 +40,7 @@ void main() async {
 class EMoneyApp extends StatefulWidget {
   static bool isAppUnlocked = false;
   static Uri? pendingDeepLink;
+  static final ValueNotifier<bool> refreshTrigger = ValueNotifier(false);
 
   const EMoneyApp({super.key});
 
@@ -77,7 +77,10 @@ class EMoneyApp extends StatefulWidget {
             MaterialPageRoute(
               builder: (context) => const ConnectAppPage(),
             ),
-          );
+          ).then((_) {
+            NotificationService.updateUnreadCount();
+            EMoneyApp.refreshTrigger.value = !EMoneyApp.refreshTrigger.value;
+          });
         }
       } else if (uri.host == 'disconnect') {
         if (navigatorKey.currentState != null) {
@@ -85,7 +88,10 @@ class EMoneyApp extends StatefulWidget {
             MaterialPageRoute(
               builder: (context) => const DisconnectAppPage(),
             ),
-          );
+          ).then((_) {
+            NotificationService.updateUnreadCount();
+            EMoneyApp.refreshTrigger.value = !EMoneyApp.refreshTrigger.value;
+          });
         }
       }
     }

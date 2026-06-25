@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../main.dart';
+import 'disconnect_app_page.dart';
 
 // ─── Konstanta Package Name App E-Commerce ───────────────────────────────────
 // Ganti nilai ini dengan package name app 716_production yang sebenarnya
@@ -17,14 +19,30 @@ class ConnectedAppsPage extends StatefulWidget {
   State<ConnectedAppsPage> createState() => _ConnectedAppsPageState();
 }
 
-class _ConnectedAppsPageState extends State<ConnectedAppsPage> {
+class _ConnectedAppsPageState extends State<ConnectedAppsPage> with WidgetsBindingObserver {
   List<_ConnectedApp> _apps = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    EMoneyApp.refreshTrigger.addListener(_loadConnectedApps);
     _loadConnectedApps();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    EMoneyApp.refreshTrigger.removeListener(_loadConnectedApps);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadConnectedApps();
+    }
   }
 
   Future<void> _loadConnectedApps() async {
@@ -58,55 +76,14 @@ class _ConnectedAppsPageState extends State<ConnectedAppsPage> {
 
   /// Memutuskan hubungan aplikasi (Unlink)
   Future<void> _unlinkApp(_ConnectedApp app) async {
-    final bool? confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Putus Hubungan', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: Text(
-          'Apakah Anda yakin ingin memutuskan hubungan dengan ${app.name}? Anda tidak akan bisa melakukan pembayaran langsung dari aplikasi tersebut sampai Anda menghubungkannya kembali.',
-          style: const TextStyle(color: AppColors.slate600, height: 1.4),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Batal', style: TextStyle(color: AppColors.slate500)),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Putuskan', style: TextStyle(color: Colors.white)),
-          ),
-        ],
+    // Arahkan ke halaman DisconnectAppPage dengan flag fromDeepLink: false
+    // agar memerlukan PIN & TOTP, dan saat batal tidak melompat ke E-Commerce.
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const DisconnectAppPage(fromDeepLink: false),
       ),
     );
-
-    if (confirm == true && mounted) {
-      // Tampilkan indikator loading atau snackbar proses
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Memutuskan hubungan dengan ${app.name}...')),
-      );
-
-      // Simulasi delay jaringan
-      await Future.delayed(const Duration(seconds: 1));
-
-      // Hapus status dari SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('is_ecommerce_connected', false);
-
-      setState(() {
-        _apps.removeWhere((element) => element.packageName == app.packageName);
-      });
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${app.name} berhasil diputuskan.'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    }
   }
 
   @override

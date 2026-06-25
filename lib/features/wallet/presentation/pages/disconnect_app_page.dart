@@ -6,7 +6,12 @@ import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/auth_service.dart';
 
 class DisconnectAppPage extends StatefulWidget {
-  const DisconnectAppPage({super.key});
+  final bool fromDeepLink;
+  
+  const DisconnectAppPage({
+    super.key,
+    this.fromDeepLink = true,
+  });
 
   @override
   State<DisconnectAppPage> createState() => _DisconnectAppPageState();
@@ -137,7 +142,7 @@ class _DisconnectAppPageState extends State<DisconnectAppPage> {
 
       // Simpan notifikasi
       await NotificationService.addNotification(
-        'Koneksi Terputus 💔',
+        'Koneksi Terputus ',
         'Hubungan dengan E-Commerce 716 Production berhasil diputuskan.',
       );
 
@@ -163,10 +168,12 @@ class _DisconnectAppPageState extends State<DisconnectAppPage> {
       onPopInvoked: (didPop) async {
         if (didPop) return;
         Navigator.pop(context);
-        try {
-          await launchUrl(Uri.parse('ecommerceapp://cancel'), mode: LaunchMode.externalApplication);
-        } catch (e) {
-          debugPrint('Gagal membuka E-Commerce: $e');
+        if (widget.fromDeepLink) {
+          try {
+            await launchUrl(Uri.parse('ecommerceapp://cancel'), mode: LaunchMode.externalApplication);
+          } catch (e) {
+            debugPrint('Gagal membuka E-Commerce: $e');
+          }
         }
       },
       child: Scaffold(
@@ -176,10 +183,12 @@ class _DisconnectAppPageState extends State<DisconnectAppPage> {
             icon: const Icon(Icons.arrow_back),
             onPressed: () async {
               Navigator.pop(context);
-              try {
-                await launchUrl(Uri.parse('ecommerceapp://cancel'), mode: LaunchMode.externalApplication);
-              } catch (e) {
-                debugPrint('Gagal membuka E-Commerce: $e');
+              if (widget.fromDeepLink) {
+                try {
+                  await launchUrl(Uri.parse('ecommerceapp://cancel'), mode: LaunchMode.externalApplication);
+                } catch (e) {
+                  debugPrint('Gagal membuka E-Commerce: $e');
+                }
               }
             },
           ),
@@ -229,10 +238,12 @@ class _DisconnectAppPageState extends State<DisconnectAppPage> {
                 TextButton(
                   onPressed: () async {
                     Navigator.pop(context);
-                    try {
-                      await launchUrl(Uri.parse('ecommerceapp://cancel'), mode: LaunchMode.externalApplication);
-                    } catch (e) {
-                      debugPrint('Gagal membuka E-Commerce: $e');
+                    if (widget.fromDeepLink) {
+                      try {
+                        await launchUrl(Uri.parse('ecommerceapp://cancel'), mode: LaunchMode.externalApplication);
+                      } catch (e) {
+                        debugPrint('Gagal membuka E-Commerce: $e');
+                      }
                     }
                   },
                   child: const Text('Batal', style: TextStyle(color: AppColors.slate500)),

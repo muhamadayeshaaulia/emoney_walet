@@ -1,14 +1,23 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationService {
   static const String _key = 'user_notifications';
 
+  // Notifier global untuk realtime update dot merah notifikasi
+  static final ValueNotifier<int> unreadCountNotifier = ValueNotifier(0);
+
+  static Future<void> updateUnreadCount() async {
+    final count = await getUnreadCount();
+    unreadCountNotifier.value = count;
+  }
+
   // Menyimpan notifikasi baru
   static Future<void> addNotification(String title, String body, {Map<String, dynamic>? extraData}) async {
     final prefs = await SharedPreferences.getInstance();
     List<String> notifications = prefs.getStringList(_key) ?? [];
-    
+
     Map<String, dynamic> newNotif = {
       'id': DateTime.now().millisecondsSinceEpoch.toString(),
       'title': title,
@@ -22,6 +31,7 @@ class NotificationService {
 
     notifications.insert(0, jsonEncode(newNotif)); // Tambah di paling atas
     await prefs.setStringList(_key, notifications);
+    await updateUnreadCount(); // Update realtime
   }
 
   // Mengambil daftar notifikasi
@@ -50,6 +60,7 @@ class NotificationService {
       updated.add(jsonEncode(map));
     }
     await prefs.setStringList(_key, updated);
+    await updateUnreadCount();
   }
 
   // Menandai semua notifikasi sebagai dibaca
@@ -63,6 +74,7 @@ class NotificationService {
       updated.add(jsonEncode(map));
     }
     await prefs.setStringList(_key, updated);
+    await updateUnreadCount();
   }
 
   // Menghapus 1 notifikasi
@@ -76,11 +88,13 @@ class NotificationService {
     });
 
     await prefs.setStringList(_key, notifications);
+    await updateUnreadCount();
   }
 
   // Menghapus semua notifikasi
   static Future<void> clearAll() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_key);
+    await updateUnreadCount();
   }
 }
