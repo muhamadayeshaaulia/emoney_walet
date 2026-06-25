@@ -150,8 +150,8 @@ class _DisconnectAppPageState extends State<DisconnectAppPage> {
         setState(() => _isLoading = false);
         Navigator.pop(context);
 
-        // Kembali ke E-Commerce
-        final returnUrl = Uri.parse('ecommerceapp://disconnect_success');
+        // Kembali ke E-Commerce dengan parameter bounce
+        final returnUrl = Uri.parse('ecommerceapp://disconnect_success?bounce=${!widget.fromDeepLink}');
         try {
           await launchUrl(returnUrl, mode: LaunchMode.externalApplication);
         } catch (e) {
