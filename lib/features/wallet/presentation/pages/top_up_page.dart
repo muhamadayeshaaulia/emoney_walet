@@ -188,7 +188,23 @@ class _TopUpPageState extends State<TopUpPage> {
     String cleanText = _amountController.text.replaceAll(RegExp(r'[^0-9]'), '');
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Top Up Saldo')),
+      appBar: AppBar(
+        title: const Text('Top Up Saldo', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.primaryColor,
+                Color(0xFF193475),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
