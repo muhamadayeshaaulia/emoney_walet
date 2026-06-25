@@ -15,6 +15,11 @@ import 'core/theme/app_colors.dart';
 import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'core/services/biometric_service.dart';
+import 'core/services/auth_service.dart';
+import 'features/wallet/presentation/pages/payment_confirmation_page.dart';
+import 'features/wallet/presentation/pages/connect_app_page.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -33,7 +38,49 @@ void main() async {
 }
 
 class EMoneyApp extends StatefulWidget {
+  static bool isAppUnlocked = false;
+  static Uri? pendingDeepLink;
+
   const EMoneyApp({super.key});
+
+  static void processPendingDeepLink() {
+    if (pendingDeepLink != null) {
+      _pushDeepLinkRoute(pendingDeepLink!);
+      pendingDeepLink = null;
+    }
+  }
+
+  static void _pushDeepLinkRoute(Uri uri) {
+    if (uri.scheme == 'emoneyapp') {
+      if (uri.host == 'pay') {
+        final invoiceId = uri.queryParameters['invoice_id'];
+        final amount = double.tryParse(uri.queryParameters['amount'] ?? '');
+        final token = uri.queryParameters['token'];
+
+        if (invoiceId != null && amount != null && token != null) {
+          if (navigatorKey.currentState != null) {
+            navigatorKey.currentState!.push(
+              MaterialPageRoute(
+                builder: (context) => PaymentConfirmationPage(
+                  invoiceId: invoiceId,
+                  amount: amount,
+                  token: token,
+                ),
+              ),
+            );
+          }
+        }
+      } else if (uri.host == 'connect') {
+        if (navigatorKey.currentState != null) {
+          navigatorKey.currentState!.push(
+            MaterialPageRoute(
+              builder: (context) => const ConnectAppPage(),
+            ),
+          );
+        }
+      }
+    }
+  }
 
   @override
   State<EMoneyApp> createState() => _EMoneyAppState();
@@ -71,24 +118,10 @@ class _EMoneyAppState extends State<EMoneyApp> {
   }
 
   void _handleDeepLink(Uri uri) {
-    if (uri.scheme == 'emoneyapp' && uri.host == 'pay') {
-      final invoiceId = uri.queryParameters['invoice_id'];
-      final amount = double.tryParse(uri.queryParameters['amount'] ?? '');
-      final token = uri.queryParameters['token'];
-
-      if (invoiceId != null && amount != null && token != null) {
-        if (navigatorKey.currentState != null) {
-          navigatorKey.currentState!.push(
-            MaterialPageRoute(
-              builder: (context) => PaymentConfirmationPage(
-                invoiceId: invoiceId,
-                amount: amount,
-                token: token,
-              ),
-            ),
-          );
-        }
-      }
+    if (EMoneyApp.isAppUnlocked) {
+      EMoneyApp._pushDeepLinkRoute(uri);
+    } else {
+      EMoneyApp.pendingDeepLink = uri;
     }
   }
 
@@ -108,240 +141,6 @@ class _EMoneyAppState extends State<EMoneyApp> {
       ),
       initialRoute: AppRouter.splash,
       routes: AppRouter.routes,
-    );
-  }
-}
-
-class PaymentConfirmationPage extends StatefulWidget {
-  final String invoiceId;
-  final double amount;
-  final String token;
-
-  const PaymentConfirmationPage({
-    super.key,
-    required this.invoiceId,
-    required this.amount,
-    required this.token,
-  });
-
-  @override
-  State<PaymentConfirmationPage> createState() => _PaymentConfirmationPageState();
-}
-
-class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
-  bool _isLoading = false;
-
-  void _showPinDialog() {
-    final TextEditingController pinController = TextEditingController();
-    String currentOtpType = 'totp';
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              title: const Text('Keamanan 2FA'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text('Masukkan OTP dari Google Authenticator atau Email Anda untuk menyetujui transaksi ini.'),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: pinController,
-                    keyboardType: TextInputType.number,
-                    obscureText: true,
-                    maxLength: 6,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: '******',
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  OutlinedButton.icon(
-                    onPressed: () async {
-                      final repository = WalletRepository();
-                      bool success = await repository.requestEmailOtp(widget.token);
-                      if (success) {
-                        setDialogState(() {
-                          currentOtpType = 'email';
-                        });
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('OTP telah dikirim ke email Anda!')),
-                          );
-                        }
-                      } else {
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Gagal mengirim OTP ke email.')),
-                          );
-                        }
-                      }
-                    },
-                    icon: const Icon(Icons.email),
-                    label: const Text('Kirim OTP ke Email (SMTP)'),
-                  ),
-                  if (currentOtpType == 'email')
-                    const Padding(
-                      padding: EdgeInsets.only(top: 8.0),
-                      child: Text('Gunakan OTP dari email', style: TextStyle(color: Colors.green, fontSize: 12)),
-                    )
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Batal'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    final pin = pinController.text;
-                    if (pin.length >= 4) {
-                      Navigator.pop(context); // Tutup dialog
-                      _processPayment(pin, currentOtpType);
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('OTP tidak valid! Minimal 4 digit.')),
-                      );
-                    }
-                  },
-                  child: const Text('Verifikasi'),
-                ),
-              ],
-            );
-          }
-        );
-      },
-    );
-  }
-
-  Future<void> _processPayment(String otpCode, String otpType) async {
-    setState(() => _isLoading = true);
-
-    try {
-      final repository = WalletRepository();
-      final responseModel = await repository.payTransaction(
-        widget.amount,
-        'Pembayaran Tagihan ${widget.invoiceId}',
-        otpCode,
-        otpType,
-        widget.token
-      );
-
-      if (responseModel != null) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Pembayaran Berhasil! Mengembalikan ke E-Commerce...')),
-        );
-        
-        // Simpan notifikasi ke SharedPreferences
-        await NotificationService.addNotification(
-          'Pembayaran Sukses ✅',
-          'Pembayaran tagihan ${widget.invoiceId} sebesar Rp ${widget.amount} berhasil.',
-        );
-
-        // Kembali ke dashboard E-Money
-        Navigator.pop(context);
-        // Memanggil aplikasi E-Commerce
-        final returnUrl = Uri.parse('ecommerceapp://success');
-        try {
-          await launchUrl(returnUrl, mode: LaunchMode.externalApplication);
-        } catch (e) {
-          debugPrint('Gagal membuka E-Commerce: $e');
-        }
-      } else {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gagal melakukan pembayaran. Coba lagi.')),
-        );
-      }
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Konfirmasi Pembayaran', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                AppColors.primaryColor,
-                Color(0xFF193475),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Icon(Icons.receipt_long, size: 60, color: Colors.orange),
-            const SizedBox(height: 20),
-            const Text(
-              'Permintaan Pembayaran E-Commerce',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 30),
-            Card(
-              elevation: 4,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    const Text('Total Tagihan', style: TextStyle(color: Colors.grey)),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Rp ${widget.amount.toStringAsFixed(0)}',
-                      style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.primaryColor),
-                    ),
-                    const Divider(height: 30),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Invoice ID:'),
-                        Text(widget.invoiceId, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const Spacer(),
-            _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : ElevatedButton(
-                    onPressed: _showPinDialog,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryColor,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: const Text(
-                      'LANJUTKAN (VERIFIKASI PIN)',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                    ),
-                  ),
-          ],
-        ),
-      ),
     );
   }
 }

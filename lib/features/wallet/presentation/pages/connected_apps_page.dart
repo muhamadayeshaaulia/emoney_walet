@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/theme/app_colors.dart';
 
 // ─── Konstanta Package Name App E-Commerce ───────────────────────────────────
@@ -17,8 +18,43 @@ class ConnectedAppsPage extends StatefulWidget {
 }
 
 class _ConnectedAppsPageState extends State<ConnectedAppsPage> {
-  // Data app yang terhubung (Awalnya kosong, nanti diisi dari request e-commerce)
-  final List<_ConnectedApp> _apps = [];
+  List<_ConnectedApp> _apps = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadConnectedApps();
+  }
+
+  Future<void> _loadConnectedApps() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isConnected = prefs.getBool('is_ecommerce_connected') ?? false;
+    
+    if (isConnected) {
+      setState(() {
+        _apps = [
+          const _ConnectedApp(
+            name: 'E-Commerce 716 Production',
+            description: 'E-Commerce terintegrasi dengan E-Money Wallet',
+            icon: Icons.store_rounded,
+            color: Color(0xFFFF6B35),
+            permissions: ['Pembayaran otomatis', 'Akses Saldo Real-time', 'Riwayat Transaksi'],
+            connectedSince: '25 Jun 2026',
+            packageName: _ecommercePackageName,
+            deepLinkScheme: _ecommerceDeepLinkScheme,
+            isActive: true,
+          ),
+        ];
+        _isLoading = false;
+      });
+    } else {
+      setState(() {
+        _apps = [];
+        _isLoading = false;
+      });
+    }
+  }
 
   /// Memutuskan hubungan aplikasi (Unlink)
   Future<void> _unlinkApp(_ConnectedApp app) async {
@@ -46,21 +82,32 @@ class _ConnectedAppsPageState extends State<ConnectedAppsPage> {
     );
 
     if (confirm == true && mounted) {
-      setState(() {
-        _apps.remove(app);
-      });
+      // Tampilkan indikator loading atau snackbar proses
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${app.name} berhasil diputuskan.'),
-          backgroundColor: Colors.green,
-        ),
+        SnackBar(content: Text('Memutuskan hubungan dengan ${app.name}...')),
       );
+
+      // Simulasi delay jaringan
+      await Future.delayed(const Duration(seconds: 1));
+
+      // Hapus status dari SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('is_ecommerce_connected', false);
+
+      setState(() {
+        _apps.removeWhere((element) => element.packageName == app.packageName);
+      });
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${app.name} berhasil diputuskan.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
     }
   }
-
-  @override
-
-
 
   @override
   Widget build(BuildContext context) {

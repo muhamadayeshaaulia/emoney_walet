@@ -4,6 +4,8 @@ import '../../../wallet/presentation/pages/home_page.dart';
 import '../../../wallet/presentation/pages/history_page.dart';
 import '../../../wallet/presentation/pages/profile_page.dart';
 
+import '../../../../main.dart';
+
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
 
@@ -13,6 +15,18 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Aplikasi telah siap dan aman (biometrik/login sudah dilewati)
+    EMoneyApp.isAppUnlocked = true;
+    
+    // Beri sedikit delay agar widget tree sudah sepenuhnya ter-build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      EMoneyApp.processPendingDeepLink();
+    });
+  }
 
   final List<Widget> _pages = [
     const HomePage(),

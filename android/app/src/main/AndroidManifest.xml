@@ -32,6 +32,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <!-- Menangkap URL scheme: emoneyapp://pay -->
                 <data android:scheme="emoneyapp" android:host="pay" />
+                <!-- Menangkap URL scheme: emoneyapp://connect -->
+                <data android:scheme="emoneyapp" android:host="connect" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
