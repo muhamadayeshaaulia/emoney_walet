@@ -11,6 +11,7 @@ import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_field.dart';
 import '../../../auth/presentation/pages/login_page.dart';
 import 'google_auth_setup_page.dart';
+import 'connected_apps_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -508,130 +509,239 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-            CircleAvatar(
-              radius: 50,
-              backgroundColor: AppColors.primaryColor,
-              backgroundImage: user?.photoURL != null
-                  ? NetworkImage(user!.photoURL!)
-                  : null,
-              child: user?.photoURL == null
-                  ? const Icon(Icons.person, size: 60, color: Colors.white)
-                  : null,
+        child: Column(
+          children: [
+            // ── Header Profil ──
+            Container(
+              width: double.infinity,
+              color: Colors.grey[50],
+              padding: const EdgeInsets.fromLTRB(24, 32, 24, 32),
+              child: Column(
+                children: [
+                  CircleAvatar(
+                    radius: 52,
+                    backgroundColor: AppColors.primaryColor,
+                    backgroundImage: user?.photoURL != null
+                        ? NetworkImage(user!.photoURL!)
+                        : null,
+                    child: user?.photoURL == null
+                        ? const Icon(Icons.person, size: 60, color: Colors.white)
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        _userName,
+                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.ink),
+                      ),
+                      if (isVerified) ...[
+                        const SizedBox(width: 6),
+                        const Icon(Icons.verified, color: AppColors.primaryColor, size: 22),
+                      ]
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    email,
+                    style: const TextStyle(fontSize: 14, color: AppColors.slate500),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  _userName,
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+
+            const SizedBox(height: 8),
+
+            // ── Seksi Keamanan ──
+            _sectionLabel('Keamanan'),
+            _settingsCard(
+              child: _isFingerprintEnabled == null
+                  ? const _LoadingTile(icon: Icons.fingerprint, label: 'Sidik Jari')
+                  : SwitchListTile(
+                      title: const Text('Login dengan Sidik Jari', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.ink)),
+                      subtitle: const Text('Masuk lebih cepat & aman tanpa password', style: TextStyle(color: AppColors.slate500)),
+                      value: _isFingerprintEnabled!,
+                      onChanged: _toggleFingerprint,
+                      secondary: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primarySurface,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.fingerprint, color: AppColors.primaryColor, size: 24),
+                      ),
+                      activeColor: AppColors.primaryColor,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    ),
+            ),
+            _settingsCard(
+              child: _isOtpLoginEnabled == null
+                  ? const _LoadingTile(icon: Icons.security, label: 'OTP (2FA)')
+                  : SwitchListTile(
+                      title: const Text('Login dengan OTP (2FA)', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.ink)),
+                      subtitle: const Text('Kode OTP wajib dimasukkan saat masuk', style: TextStyle(color: AppColors.slate500)),
+                      value: _isOtpLoginEnabled!,
+                      onChanged: _toggleOtpLogin,
+                      secondary: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primarySurface,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.security, color: AppColors.primaryColor, size: 24),
+                      ),
+                      activeColor: AppColors.primaryColor,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    ),
+            ),
+            _settingsCard(
+              child: _isTotpEnabled == null
+                  ? const _LoadingTile(icon: Icons.phonelink_setup, label: 'Google Authenticator')
+                  : ListTile(
+                      leading: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: _isTotpEnabled! ? Colors.green.withOpacity(0.1) : AppColors.primarySurface,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          _isTotpEnabled! ? Icons.verified_user : Icons.phonelink_setup,
+                          color: _isTotpEnabled! ? Colors.green : AppColors.primaryColor,
+                          size: 24,
+                        ),
+                      ),
+                      title: const Text('Google Authenticator (2FA)', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.ink)),
+                      subtitle: Text(
+                        _isTotpEnabled! ? 'Aktif — Digunakan saat pembayaran' : 'Nonaktif — Tap untuk mengaktifkan',
+                        style: TextStyle(color: _isTotpEnabled! ? Colors.green : AppColors.slate500),
+                      ),
+                      trailing: Icon(
+                        _isTotpEnabled! ? Icons.check_circle : Icons.chevron_right,
+                        color: _isTotpEnabled! ? Colors.green : AppColors.slate400,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                      onTap: _isTotpEnabled! ? _resetGoogleAuthenticator : _setupGoogleAuthenticator,
+                    ),
+            ),
+
+            const SizedBox(height: 8),
+
+            // ── Seksi Aplikasi ──
+            _sectionLabel('Aplikasi'),
+            _settingsCard(
+              child: ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.indigo.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.apps_rounded, color: Colors.indigo, size: 24),
                 ),
-                if (isVerified) ...[
-                  const SizedBox(width: 8),
-                  const Icon(Icons.verified, color: AppColors.primaryColor, size: 24),
-                ]
-              ],
+                title: const Text('Aplikasi Terhubung', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.ink)),
+                subtitle: const Text('Lihat aplikasi yang dapat mengakses akun ini', style: TextStyle(color: AppColors.slate500)),
+                trailing: const Icon(Icons.chevron_right, color: AppColors.slate400),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                onTap: _showConnectedApps,
+              ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              email,
-              style: const TextStyle(fontSize: 16, color: Colors.grey),
+
+            const SizedBox(height: 8),
+
+            // ── Seksi Akun ──
+            _sectionLabel('Akun'),
+            _settingsCard(
+              child: ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.logout_rounded, color: Colors.red, size: 24),
+                ),
+                title: const Text('Keluar (Logout)', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+                subtitle: const Text('Keluar dari akun E-Money Mamah Saya', style: TextStyle(color: AppColors.slate500)),
+                trailing: const Icon(Icons.chevron_right, color: Colors.red),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                onTap: () => _logout(context),
+              ),
             ),
             const SizedBox(height: 40),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: _isFingerprintEnabled == null
-                    ? const ListTile(
-                        leading: Icon(Icons.fingerprint, color: Colors.grey, size: 32),
-                        title: Text('Memuat pengaturan...', style: TextStyle(color: Colors.grey)),
-                        trailing: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
-                      )
-                    : SwitchListTile(
-                        title: const Text('Login dengan Sidik Jari', style: TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: const Text('Masuk lebih cepat & aman tanpa password'),
-                        value: _isFingerprintEnabled!,
-                        onChanged: _toggleFingerprint,
-                        secondary: const Icon(Icons.fingerprint, color: AppColors.primaryColor, size: 32),
-                        activeColor: AppColors.primaryColor,
-                      ),
-              ),
-            ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  child: _isOtpLoginEnabled == null
-                      ? const ListTile(
-                          leading: Icon(Icons.security, color: Colors.grey, size: 32),
-                          title: Text('Memuat pengaturan...', style: TextStyle(color: Colors.grey)),
-                          trailing: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
-                        )
-                      : SwitchListTile(
-                          title: const Text('Login dengan OTP (2FA)', style: TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: const Text('Kode OTP wajib dimasukkan saat masuk'),
-                          value: _isOtpLoginEnabled!,
-                          onChanged: _toggleOtpLogin,
-                          secondary: const Icon(Icons.security, color: AppColors.primaryColor, size: 32),
-                          activeColor: AppColors.primaryColor,
-                        ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  child: _isTotpEnabled == null
-                      ? const ListTile(
-                          leading: Icon(Icons.phonelink_setup, color: Colors.grey, size: 32),
-                          title: Text('Memuat pengaturan...', style: TextStyle(color: Colors.grey)),
-                          trailing: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
-                        )
-                      : ListTile(
-                          leading: Icon(
-                            _isTotpEnabled! ? Icons.verified_user : Icons.phonelink_setup,
-                            color: _isTotpEnabled! ? Colors.green : AppColors.primaryColor,
-                            size: 32,
-                          ),
-                          title: const Text('Google Authenticator (2FA)', style: TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: Text(
-                            _isTotpEnabled!
-                                ? 'Aktif (Digunakan saat pembayaran)' 
-                                : 'Nonaktif — Tap untuk mengaktifkan',
-                            style: TextStyle(
-                              color: _isTotpEnabled! ? Colors.green : Colors.grey,
-                            ),
-                          ),
-                          trailing: _isTotpEnabled!
-                              ? const Icon(Icons.check_circle, color: Colors.green)
-                              : const Icon(Icons.chevron_right),
-                          onTap: _isTotpEnabled! ? _resetGoogleAuthenticator : _setupGoogleAuthenticator,
-                        ),
-                ),
-              ),
-              const SizedBox(height: 30),
-              ElevatedButton.icon(
-                onPressed: () => _logout(context),
-                icon: const Icon(Icons.logout, color: Colors.white),
-                label: const Text('Keluar (Logout)', style: TextStyle(color: Colors.white)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                ),
-              ),
-            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionLabel(String label) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 8, 24, 6),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          label.toUpperCase(),
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+            color: AppColors.slate500,
           ),
         ),
       ),
+    );
+  }
+
+  Widget _settingsCard({required Widget child}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.line),
+        ),
+        child: child,
+      ),
+    );
+  }
+
+  void _showConnectedApps() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ConnectedAppsPage()),
+    );
+  }
+}
+
+class _LoadingTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _LoadingTile({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: AppColors.line,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, color: AppColors.slate400, size: 24),
+      ),
+      title: Text(
+        'Memuat $label...',
+        style: const TextStyle(color: AppColors.slate400, fontWeight: FontWeight.w500),
+      ),
+      trailing: const SizedBox(
+        width: 18,
+        height: 18,
+        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryColor),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
     );
   }
 }

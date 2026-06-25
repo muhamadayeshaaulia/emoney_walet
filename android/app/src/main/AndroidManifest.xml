@@ -49,9 +49,30 @@
 
          In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
     <queries>
+        <!-- Required for io.flutter.plugin.text.ProcessTextPlugin -->
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+        <!-- Izin query ke app e-commerce 716_production (deep link) -->
+        <package android:name="com.example.uts_1123150188_sesester6" />
+        <!-- Izin launch URL (url_launcher): https, http, market -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="http" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="market" />
+        </intent>
+        <!-- Izin launch custom scheme ecommerceapp:// -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="ecommerceapp" />
         </intent>
     </queries>
 </manifest>
