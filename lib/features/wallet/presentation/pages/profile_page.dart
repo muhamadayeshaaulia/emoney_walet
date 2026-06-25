@@ -279,6 +279,194 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  void _resetGoogleAuthenticator() async {
+    // Tampilkan dialog konfirmasi
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Atur Ulang Google Authenticator?'),
+          content: const Text(
+            'Jika Anda kehilangan akses atau menghapus aplikasi Google Authenticator, '
+            'kami akan mengirimkan kode OTP ke email terdaftar Anda untuk memverifikasi tindakan ini.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _sendResetOtp();
+              },
+              child: const Text('Kirim OTP ke Email'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _sendResetOtp() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    final error = await AuthService.resendEmailOtp(action: 'deactivation');
+
+    if (mounted) {
+      Navigator.pop(context); // Tutup loading
+    }
+
+    if (error != null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal mengirim OTP: $error')));
+      }
+      return;
+    }
+
+    // Tampilkan modal verifikasi OTP
+    final otpController = TextEditingController();
+    bool isVerifying = false;
+    String? localError;
+
+    if (mounted) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.white,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        builder: (context) {
+          return StatefulBuilder(
+            builder: (context, setModalState) {
+              return Padding(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                  left: 26, right: 26, top: 32,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Atur Ulang Authenticator',
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.ink)),
+                    const SizedBox(height: 12),
+                    const Text('Silakan masukkan 6 digit kode OTP yang kami kirimkan ke email Anda untuk menonaktifkan Google Authenticator.',
+                      style: TextStyle(fontSize: 14, color: AppColors.slate500)),
+                    const SizedBox(height: 24),
+                    if (localError != null) ...[
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.error_outline, color: Colors.red, size: 20),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(localError!, style: const TextStyle(color: Colors.red, fontSize: 13, fontWeight: FontWeight.w600)),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                    AppField(
+                      label: 'Kode OTP (6 digit)',
+                      value: otpController.text,
+                      onChanged: (v) => otpController.text = v,
+                      placeholder: '123456',
+                      keyboardType: TextInputType.number,
+                      maxLength: 6,
+                      prefixIcon: const Icon(Icons.security, size: 20),
+                    ),
+                    const SizedBox(height: 24),
+                    AppButton(
+                      label: 'VERIFIKASI & NONAKTIFKAN',
+                      isLoading: isVerifying,
+                      onPressed: () async {
+                        if (otpController.text.isEmpty) return;
+                        setModalState(() {
+                          isVerifying = true;
+                          localError = null;
+                        });
+
+                        final verifyError = await AuthService.verifyEmailOtp(otpController.text);
+                        if (verifyError == null) {
+                          // Panggil registerTOTP untuk mereset totp_enabled ke false dan menghapus secret lama
+                          await AuthService.registerTOTP();
+                          
+                          if (mounted) {
+                            Navigator.pop(context); // Tutup bottom sheet
+                            
+                            // Kirim notifikasi lokal
+                            const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+                              'emoney_channel',
+                              'Notifikasi E-Money',
+                              channelDescription: 'Notifikasi sistem E-Money',
+                              importance: Importance.max,
+                              priority: Priority.high,
+                            );
+                            const NotificationDetails notificationDetails = NotificationDetails(android: androidDetails);
+                            await flutterLocalNotificationsPlugin.show(
+                              6,
+                              'Google Authenticator Dinonaktifkan ⚠️',
+                              'Verifikasi 2-Langkah dengan Google Authenticator telah dinonaktifkan.',
+                              notificationDetails,
+                            );
+
+                            _loadSettings(); // Reload settings untuk update UI
+                          }
+                        } else {
+                          setModalState(() {
+                            isVerifying = false;
+                            localError = verifyError;
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Center(
+                      child: TextButton(
+                        onPressed: isVerifying ? null : () async {
+                          setModalState(() {
+                            isVerifying = true;
+                            localError = null;
+                          });
+                          String? error = await AuthService.resendEmailOtp(action: 'deactivation');
+                          setModalState(() => isVerifying = false);
+                          if (!mounted) return;
+                          if (error == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Kode OTP baru telah dikirim!')),
+                            );
+                          } else {
+                            setModalState(() => localError = error);
+                          }
+                        },
+                        child: const Text('Kirim Ulang Kode OTP',
+                          style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
@@ -395,7 +583,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           trailing: _isTotpEnabled!
                               ? const Icon(Icons.check_circle, color: Colors.green)
                               : const Icon(Icons.chevron_right),
-                          onTap: _isTotpEnabled! ? null : _setupGoogleAuthenticator,
+                          onTap: _isTotpEnabled! ? _resetGoogleAuthenticator : _setupGoogleAuthenticator,
                         ),
                 ),
               ),
