@@ -274,10 +274,12 @@ class _ProfilePageState extends State<ProfilePage> {
       appBar: AppBar(
         title: const Text('Profil Saya'),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
             const CircleAvatar(
               radius: 50,
               backgroundColor: AppColors.primaryColor,
@@ -348,14 +350,15 @@ class _ProfilePageState extends State<ProfilePage> {
               const SizedBox(height: 30),
               ElevatedButton.icon(
                 onPressed: () => _logout(context),
-              icon: const Icon(Icons.logout, color: Colors.white),
-              label: const Text('Keluar (Logout)', style: TextStyle(color: Colors.white)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                icon: const Icon(Icons.logout, color: Colors.white),
+                label: const Text('Keluar (Logout)', style: TextStyle(color: Colors.white)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                ),
               ),
-            )
-          ],
+            ],
+          ),
         ),
       ),
     );
