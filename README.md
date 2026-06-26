@@ -127,14 +127,14 @@ Layanan backend dibangun menggunakan bahasa **Go** dengan framework **Gin Gonic*
 
 * Tampilan AOlikasi yang saling terhubung menggunakan deep link
 <p align="center">
-  <img src="assets/images/deeplink1.png" width="200"/>
-  <img src="assets/images/deeplink2.png" width="200"/>
-  <img src="assets/images/deeplink3.png" width="200"/>
-  <img src="assets/images/deeplink4.png" width="200"/>
-  <img src="assets/images/deeplink5.png" width="200"/>
-  <img src="assets/images/deeplink6.png" width="200"/>
-  <img src="assets/images/deeplink7.png" width="200"/>
-  <img src="assets/images/deeplink8.png" width="200"/>
-  <img src="assets/images/deeplink9.png" width="200"/>
-  <img src="assets/images/deeplink10.png" width="200"/>
+  <img src="assets/images/deeplink1.jpeg" width="200"/>
+  <img src="assets/images/deeplink2.jpeg" width="200"/>
+  <img src="assets/images/deeplink3.jpeg" width="200"/>
+  <img src="assets/images/deeplink4.jpeg" width="200"/>
+  <img src="assets/images/deeplink5.jpeg" width="200"/>
+  <img src="assets/images/deeplink6.jpeg" width="200"/>
+  <img src="assets/images/deeplink7.jpeg" width="200"/>
+  <img src="assets/images/deeplink8.jpeg" width="200"/>
+  <img src="assets/images/deeplink9.jpeg" width="200"/>
+  <img src="assets/images/deeplink10.jpeg" width="200"/>
 </p>
