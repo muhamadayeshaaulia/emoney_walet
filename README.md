@@ -6,6 +6,10 @@
     * Teknik Informatika
     * Software Engineering
 
+Aplikasi ini di buat bertujuan untuk memenuhi kebutuhan tugas UAS mata kuliah Pemerograman Mobile Lanjutan di <b>Global Institut Teknologi Bina Sarana Global</b> pada semester genap 2026/2027.
+
+    ## * Dosen Pengampu : IKetut Gunawan, S.KOM, M.T.I
+
 ## Arsitektur & Struktur Sistem
 
 Proyek ini terintegrasi erat dengan aplikasi E-Commerce menggunakan protokol **Deep Linking** (`emoneyapp://` dan `ecommerceapp://`) untuk alur pembayaran, serta berkomunikasi dengan backend masing-masing melalui REST API.
@@ -137,3 +141,34 @@ Layanan backend dibangun menggunakan bahasa **Go** dengan framework **Gin Gonic*
   <img src="assets/images/deeplink8.jpeg" width="200"/>
   <img src="assets/images/deeplink9.jpeg" width="200"/>
 </p>
+
+## Penutup
+
+Berikut adalah rangkuman fitur dan teknologi yang digunakan dalam pengembangan aplikasi **E-Money Wallet** dan **E-Commerce**: 
+
+### 1. Teknologi & Bahasa Pemrograman
+* **Bahasa Pemrograman**: 100% aplikasi dibangun menggunakan bahasa **Dart**.
+* **Framework**: Menggunakan framework **Flutter SDK** untuk kedua aplikasi, mendukung pengembangan cross-platform (Android & iOS).
+* **Database**: Kedua aplikasi terhubung ke database **MySQL** yang sama, memfasilitasi integrasi data antar-aplikasi.
+* **Backend**: Layanan backend dibangun menggunakan **Go** dengan framework **Gin Gonic** untuk performa tinggi.
+
+### 2. Arsitektur Aplikasi & Kode
+* **Arsitektur**: Kedua aplikasi mengikuti **Feature-First Clean Architecture**, yang memisahkan kode berdasarkan fitur, mempermudah skalabilitas dan pemeliharaan.
+* **Struktur Folder**:
+    * **E-Money Wallet**: `lib/` -> `core/` (sumber daya global), `features/auth`, `features/dashboard`, `features/wallet`.
+    * **E-Commerce**: `lib/` -> `core/` (sumber daya global), `features/admin`, `features/auth`, `features/cart`, `features/catalog`, `features/checkout`, `features/dashboard`.
+* **Pengelolaan State**: Kedua aplikasi menggunakan `GetX` sebagai solution manajer.
+* **Keamanan**:
+    * **Biometric Verification**: Kedua aplikasi mendukung verifikasi sidik jari.
+    * **Google Authenticator (2FA)**: Digunakan pada **E-Money Wallet** untuk autentikasi pembayaran.
+
+### 3. Fitur Keamanan Utama
+* **Google Authenticator (2FA)**: Pembayaran di E-Money Wallet mewajibkan input PIN diikuti kode OTP dinamis dari Google Authenticator.
+* **Biometric Verification**: Fitur sidik jari di menu profil dilengkapi dengan pengaman aktif (verifikasi wajib berhasil sebelum toggle sidik jari aktif).
+
+### 4. Alur Integrasi Pembayaran (Inter-App Deep Linking)
+1. E-Commerce request buat transaksi baru -> Backend mengembalikan `invoice_id` & `total_amount` dengan status `PENDING`.
+2. E-Commerce membuka Deep Link: `emoneyapp://pay?invoice_id=...&amount=...&token=...`
+3. E-Money memproses pembayaran & verifikasi keamanan.
+4. E-Money mengirim callback sukses: `ecommerceapp://success?invoice_id=...`
+5. E-Commerce memanggil API backend `PUT /v1/transactions/:invoice_id` untuk memperbarui status transaksi menjadi `SUCCESS`.
