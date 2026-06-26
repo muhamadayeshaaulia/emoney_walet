@@ -172,3 +172,19 @@ Berikut adalah rangkuman fitur dan teknologi yang digunakan dalam pengembangan a
 3. E-Money memproses pembayaran & verifikasi keamanan.
 4. E-Money mengirim callback sukses: `ecommerceapp://success?invoice_id=...`
 5. E-Commerce memanggil API backend `PUT /v1/transactions/:invoice_id` untuk memperbarui status transaksi menjadi `SUCCESS`.
+
+## Link Repositories & Presentasi Youtube
+
+### Github Repository
+
+* [E-commerce Toko Bunga 716_Production](https://github.com/muhamadayeshaaulia/toko_bunga_uts_1123150188.git) - Klik untuk melihat repositori E-Commerce
+
+* [E-Money Mamah Saya](https://github.com/muhamadayeshaaulia/emoney_walet.git) - Klik untuk melihat repositori E-Money Wallet
+
+* [Backend E-Commerce](https://github.com/muhamadayeshaaulia/semester6.4_Firebase_Authentication_Lanjutan.git) - Klik untuk melihat repositori Backend Api E-commerce
+
+* [Backend E-Money](https://github.com/muhamadayeshaaulia/1123150188_uas_be_emoney.git) - Klik untuk melihat repositori Backend Api E-Money
+
+### Presentasi Youtube
+
+* [Link Presentasi Youtube](https://youtube.com) - Klik untuk melihat presentasi Youtube
