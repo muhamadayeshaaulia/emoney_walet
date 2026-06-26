@@ -93,6 +93,7 @@ Layanan backend dibangun menggunakan bahasa **Go** dengan framework **Gin Gonic*
   <img src="assets/images/emoney5.jpeg" width="200"/>
   <img src="assets/images/emoney6.jpeg" width="200"/>
   <img src="assets/images/emoney7.jpeg" width="200"/>
+  <img src="assets/images/emoneytop.jpeg" width="200"/>
   <img src="assets/images/emoney8.jpeg" width="200"/>
   <img src="assets/images/emoney9.jpeg" width="200"/>
   <img src="assets/images/emoney10.jpeg" width="200"/>
