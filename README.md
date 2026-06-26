@@ -83,10 +83,33 @@ Layanan backend dibangun menggunakan bahasa **Go** dengan framework **Gin Gonic*
 
 # UI Aplikasi E-money & E-commerce
 
-* Tampilan ketika awal pertama kali aplikasi berjalan
+* Tampilan ketika aplikasi berjalan
 
 <p align="center">
   <img src="assets/images/emoney1.jpeg" width="200"/>
   <img src="assets/images/emoney2.jpeg" width="200"/>
   <img src="assets/images/emoney3.jpeg" width="200"/>
+  <img src="assets/images/emoney4.jpeg" width="200"/>
+  <img src="assets/images/emoney5.jpeg" width="200"/>
+  <img src="assets/images/emoney6.jpeg" width="200"/>
+  <img src="assets/images/emoney7.jpeg" width="200"/>
+  <img src="assets/images/emoney8.jpeg" width="200"/>
+  <img src="assets/images/emoney9.jpeg" width="200"/>
+  <img src="assets/images/emoney10.jpeg" width="200"/>
+  <img src="assets/images/emoney11.jpeg" width="200"/>
+  <img src="assets/images/emoney12.jpeg" width="200"/>
+  <img src="assets/images/emoney13.jpeg" width="200"/>
+  <img src="assets/images/emoney14.jpeg" width="200"/>
+  <img src="assets/images/emoney15.jpeg" width="200"/>
+  <img src="assets/images/emoney16.jpeg" width="200"/>
+  <img src="assets/images/emoney17.jpeg" width="200"/>
+  <img src="assets/images/emoney18.jpeg" width="200"/>
+  <img src="assets/images/emoney19.jpeg" width="200"/>
+  <img src="assets/images/emoney20.jpeg" width="200"/>
+  <img src="assets/images/emoney21.jpeg" width="200"/>
+  <img src="assets/images/emoney22.jpeg" width="200"/>
+  <img src="assets/images/emoney23.jpeg" width="200"/>
+  <img src="assets/images/emoney24.jpeg" width="200"/>
+  <img src="assets/images/emoney25.jpeg" width="200"/>
+  <img src="assets/images/emoney26.jpeg" width="200"/>
 </p>
