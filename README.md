@@ -18,7 +18,7 @@ Proyek ini terintegrasi erat dengan aplikasi E-Commerce menggunakan protokol **D
 ### 2. Arsitektur Kode Flutter (Clean Architecture / Feature-First)
 Kedua aplikasi Flutter menggunakan pendekatan **Feature-First Clean Architecture** yang memisahkan kode berdasarkan fitur, mempermudah skalabilitas dan pemeliharaan.
 
-Struktur Folder Lengkap (`lib/`):
+Struktur Folder E-Money Wallet (`lib/`):
 ```text
 lib/
 ├── core/                       # Sumber daya global & konfigurasi sistem
@@ -44,6 +44,27 @@ lib/
 │
 ├── firebase_options.dart       # Konfigurasi otomatis Firebase SDK
 └── main.dart                   # Entry point aplikasi & inisialisasi awal
+```
+
+Struktur Folder E-Commerce (`lib/`):
+```text
+lib/
+├── core/                       # Sumber daya global & konfigurasi sistem
+│   ├── routes/                 # Konfigurasi navigasi rute
+│   ├── services/               # Layanan eksternal (Dio, Notification, dll.)
+│   ├── theme/                  # Konfigurasi UI Theme & Warna
+│   └── utils/                  # Helper (format mata uang, dll.)
+│
+├── features/                   # Modul aplikasi berbasis Fitur
+│   ├── admin/                  # Modul Admin Kelola Produk
+│   ├── auth/                   # Modul Registrasi & Login Customer
+│   ├── cart/                   # Modul Keranjang Belanjaan
+│   ├── catalog/                # Modul Katalog & Pencarian Produk
+│   ├── checkout/               # Modul Alur Checkout Pesanan
+│   └── dashboard/              # Modul Dashboard Utama & Riwayat Transaksi
+│
+├── firebase_options.dart       # Konfigurasi Firebase SDK
+└── main.dart                   # Entry point aplikasi & inisialisasi Deep Link
 ```
 
 ### 3. Arsitektur Backend (Golang-Gin & GORM)
