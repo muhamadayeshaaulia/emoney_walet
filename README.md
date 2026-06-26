@@ -114,3 +114,13 @@ Layanan backend dibangun menggunakan bahasa **Go** dengan framework **Gin Gonic*
   <img src="assets/images/emoney25.jpeg" width="200"/>
   <img src="assets/images/emoney26.jpeg" width="200"/>
 </p>
+
+* Tampilan Updated aplikasi E-commerce 
+<p align="center">
+  <img src="assets/images/ecommerce1.jpeg" width="200"/>
+  <img src="assets/images/ecommerce2.jpeg" width="200"/>
+  <img src="assets/images/ecommerce3.jpeg" width="200"/>
+  <img src="assets/images/ecommerce4.jpeg" width="200"/>
+  <img src="assets/images/ecommerce5.jpeg" width="200"/>
+  <img src="assets/images/ecommerce6.jpeg" width="200"/>
+</p>
