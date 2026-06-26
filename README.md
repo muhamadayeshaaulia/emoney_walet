@@ -80,3 +80,13 @@ Layanan backend dibangun menggunakan bahasa **Go** dengan framework **Gin Gonic*
 ### 5. Fitur Keamanan Utama
 * **Google Authenticator (2FA)**: Pembayaran mewajibkan input PIN diikuti kode OTP dinamis dari Google Authenticator.
 * **Biometric Verification**: Fitur sidik jari di menu profil dilengkapi dengan pengaman aktif (verifikasi wajib berhasil sebelum toggle sidik jari aktif).
+
+# UI Aplikasi E-money & E-commerce
+
+* Tampilan ketika awal pertama kali aplikasi berjalan
+
+<p align="center">
+  <img src="assets/images/gambar1.jpg" width="200"/>
+  <img src="assets/images/gambar2.jpg" width="200"/>
+  <img src="assets/images/gambar3.jpg" width="200"/>
+</p>
