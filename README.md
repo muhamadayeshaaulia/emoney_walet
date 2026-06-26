@@ -18,9 +18,33 @@ Proyek ini terintegrasi erat dengan aplikasi E-Commerce menggunakan protokol **D
 ### 2. Arsitektur Kode Flutter (Clean Architecture / Feature-First)
 Kedua aplikasi Flutter menggunakan pendekatan **Feature-First Clean Architecture** yang memisahkan kode berdasarkan fitur, mempermudah skalabilitas dan pemeliharaan.
 
-Struktur Folder Flutter:
-* `lib/core/`: Sumber daya global (Dio, Local Notifications, Secure Storage, Theme, dll.)
-* `lib/features/`: Pembagian modular berdasarkan Fitur (auth, wallet, checkout, dashboard, dll.) yang dibagi lagi menjadi layer `data`, `presentation`, dan `providers`.
+Struktur Folder Lengkap (`lib/`):
+```text
+lib/
+├── core/                       # Sumber daya global & konfigurasi sistem
+│   ├── constants/              # Konstanta aplikasi (API endpoint, assets, dll.)
+│   ├── network/                # Client HTTP (DioClient, error interceptor)
+│   ├── routes/                 # Konfigurasi rute halaman (AppRouter)
+│   ├── services/               # Layanan eksternal (AuthService, BiometricService, NotificationService)
+│   ├── theme/                  # Warna, tipografi, & style UI (AppColors)
+│   ├── utils/                  # Utility helper (CurrencyFormatter, validator)
+│   └── widgets/                # UI widget reusable (AppButton, AppField, dll.)
+│
+├── features/                   # Modul aplikasi berbasis Fitur
+│   ├── auth/                   # Modul Autentikasi Pengguna
+│   │   ├── data/               # Model data user (UserModel)
+│   │   └── presentation/       # Halaman Login, Register, & OTP
+│   │
+│   ├── dashboard/              # Modul Tampilan Utama Wallet
+│   │   └── presentation/       # Halaman Dashboard, Navigasi
+│   │
+│   └── wallet/                 # Modul Transaksi & Kelola Wallet
+│       ├── data/               # Model transaksi, mutasi, & wallet info
+│       └── presentation/       # Halaman Kirim Uang, Konfirmasi Pembayaran, & Aplikasi Terhubung
+│
+├── firebase_options.dart       # Konfigurasi otomatis Firebase SDK
+└── main.dart                   # Entry point aplikasi & inisialisasi awal
+```
 
 ### 3. Arsitektur Backend (Golang-Gin & GORM)
 Layanan backend dibangun menggunakan bahasa **Go** dengan framework **Gin Gonic** untuk performa tinggi, serta **GORM** sebagai ORM ke database MySQL dengan fitur Auto-Migration.
