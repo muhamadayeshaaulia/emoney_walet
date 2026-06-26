@@ -136,5 +136,4 @@ Layanan backend dibangun menggunakan bahasa **Go** dengan framework **Gin Gonic*
   <img src="assets/images/deeplink7.jpeg" width="200"/>
   <img src="assets/images/deeplink8.jpeg" width="200"/>
   <img src="assets/images/deeplink9.jpeg" width="200"/>
-  <img src="assets/images/deeplink10.jpeg" width="200"/>
 </p>
