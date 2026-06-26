@@ -6,6 +6,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../../../../main.dart';
 import '../../../../core/services/auth_service.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../../core/services/biometric_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_field.dart';
@@ -60,6 +61,20 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _toggleFingerprint(bool value) async {
+    if (value) {
+      // Prompt user to authenticate before turning it on
+      final isAuthenticated = await BiometricService.authenticate();
+      if (!isAuthenticated) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Verifikasi Sidik Jari / Face ID gagal.')),
+          );
+        }
+        // Gagal verifikasi, batal nyalakan
+        return;
+      }
+    }
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('is_fingerprint_enabled', value);
     setState(() {
