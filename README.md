@@ -115,7 +115,7 @@ Layanan backend dibangun menggunakan bahasa **Go** dengan framework **Gin Gonic*
   <img src="assets/images/emoney26.jpeg" width="200"/>
 </p>
 
-* Tampilan Updated aplikasi [E-commerce Toko Bunga 716_Production](https://youtu.be/Jyag6PCHHvY?si=S2vp7k-C7Z-Ihvrz)
+* Tampilan Updated aplikasi [E-commerce Toko Bunga 716_Production](https://github.com/muhamadayeshaaulia/toko_bunga_uts_1123150188.git)
 <p align="center">
   <img src="assets/images/ecommerce1.jpeg" width="200"/>
   <img src="assets/images/ecommerce2.jpeg" width="200"/>
