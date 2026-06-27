@@ -46,7 +46,6 @@ class _ProfilePageState extends State<ProfilePage> {
   void _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     final uid = FirebaseAuth.instance.currentUser?.uid;
-    
     // Ambil status TOTP dari backend
     final profile = await AuthService.getProfile();
     final totpEnabled = profile?['totp_enabled'] ?? false;

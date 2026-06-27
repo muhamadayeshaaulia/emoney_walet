@@ -187,4 +187,4 @@ Berikut adalah rangkuman fitur dan teknologi yang digunakan dalam pengembangan a
 
 ### Presentasi Youtube
 
-* [Link Presentasi Youtube](https://youtube.com) - Klik untuk melihat presentasi Youtube
+* [Link Presentasi Youtube](https://youtu.be/5KsFDqj_kGk?si=s9vCj3q25mNR2Yxz) - Klik untuk melihat presentasi Youtube
